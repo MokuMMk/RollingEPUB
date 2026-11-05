@@ -1603,16 +1603,41 @@ class ChapterParser {
         return std::string();
     }
 
-    /* Lightweight extractor used for cross-file note targets. */
+    /* Lightweight extractor used for cross-file note targets.  Only elements
+     * that are structurally footnotes are accepted; an ordinary cross-chapter
+     * link (e.g. "chapter2.xhtml#section") must stay a normal link instead of
+     * turning the target paragraph into a note. */
     std::string cross_file_note_text(const std::string& file, const std::string& target_id) const {
         if (file.empty() || target_id.empty() || !book_.opened) return std::string();
         std::string html;
         if (book_read_resource_string(book_, file, &html, REPUB_MAX_CHAPTER_BYTES) != REPUB_OK)
             return std::string();
-        return extract_element_text(html, target_id);
+        return extract_element_text(html, target_id, true);
     }
 
-    static std::string extract_element_text(std::string_view html, std::string_view id) {
+    static bool is_footnote_element(const TagToken& tag) {
+        if (tag.name == "aside") return true;
+        std::string_view value;
+        if (find_attr(tag, "epub:type", &value) || find_attr(tag, "type", &value)) {
+            if (contains_token_ci(repub::decode_entities(value), "footnote") ||
+                contains_token_ci(repub::decode_entities(value), "endnote") ||
+                contains_token_ci(repub::decode_entities(value), "rearnote"))
+                return true;
+        }
+        if (find_attr(tag, "class", &value)) {
+            const std::string cls = repub::decode_entities(value);
+            if (contains_token_ci(cls, "footnote") || contains_token_ci(cls, "endnote") ||
+                contains_token_ci(cls, "noteref"))
+                return true;
+        }
+        if (find_attr(tag, "role", &value)) {
+            if (contains_token_ci(repub::decode_entities(value), "doc-footnote")) return true;
+        }
+        return false;
+    }
+
+    static std::string extract_element_text(std::string_view html, std::string_view id,
+                                            bool require_footnote = false) {
         if (html.empty() || id.empty() || id.size() > 64) return std::string();
         size_t content_start = std::string_view::npos;
         size_t content_end = html.size();
@@ -1639,6 +1664,7 @@ class ChapterParser {
                     std::memcmp(value.data(), id.data(), id.size()) == 0)
                     matches = true;
                 if (matches) {
+                    if (require_footnote && !is_footnote_element(tag)) return std::string();
                     content_start = at;
                     const size_t limit = std::min(html.size(), at + kCrossFileWindow);
                     size_t depth = 1;

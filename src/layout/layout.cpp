@@ -421,6 +421,16 @@ class Builder {
     /* Vertical writing continuation state (persists across blocks). */
     int v_column_ = 0;
     int v_column_top_ = 0;
+    /* x of the next column's left edge, advancing right-to-left.  Kept across
+     * blocks so a large heading column is followed by body columns without
+     * overlap (blocks may have different line pitch). */
+    int v_cursor_x_ = -1;
+
+    void reset_vertical_columns() {
+        v_column_ = 0;
+        v_cursor_x_ = content_x_ + content_w_;
+        v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+    }
 };
 
 int Builder::scaled(int value, int px) const {
@@ -1310,9 +1320,9 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
     if (run_end_ > flow_.runs.size()) run_end_ = flow_.runs.size();
     if (run_cursor_ > run_end_) run_cursor_ = run_end_;
 
-    const int columns_per_page = std::max(1, content_w_ / pitch);
     if (v_column_top_ == 0) v_column_top_ = page_top_ + first_page_extra_;
-    int column_x = content_x_ + content_w_ - (v_column_ + 1) * pitch;
+    if (v_cursor_x_ < 0) v_cursor_x_ = content_x_ + content_w_;
+    int column_x = v_cursor_x_ - pitch;
     bool first_line = true;
 
     while (pos < limit && !stopped_) {
@@ -1329,16 +1339,17 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
             continue;
         }
 
-        /* Start a new page when the current one has no column left. */
-        if (v_column_ >= columns_per_page) {
+        /* Start a new page when this block's pitch no longer fits. */
+        if (v_cursor_x_ - pitch < content_x_) {
             v_column_ = 0;
             if (!new_page(static_cast<uint32_t>(pos))) return true;
             v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+            v_cursor_x_ = content_x_ + content_w_;
         }
         const int margin = first_line ? style.margin_before : 0;
         const int indent = first_line ? style.first_indent : 0;
         const int avail = std::max(pitch, bottom_ - (v_column_top_ + margin) - indent);
-        column_x = content_x_ + content_w_ - (v_column_ + 1) * pitch;
+        column_x = v_cursor_x_ - pitch;
 
         LineBuild col;
         col.indent = indent;
@@ -1505,6 +1516,7 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
         }
         cover(static_cast<uint32_t>(col.end_offset));
         line_index_ = line_index_ < 0xFFFF ? line_index_ + 1 : line_index_;
+        v_cursor_x_ = column_x;
         ++v_column_;
         first_line = col.hard_end;
         pos = col.next;
@@ -1518,12 +1530,12 @@ bool Builder::layout_vertical() {
     }
     v_column_ = 0;
     v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+    v_cursor_x_ = content_x_ + content_w_;
     for (size_t i = 0; i < flow_.blocks.size() && !stopped_; ++i) {
         const FlowBlock& block = flow_.blocks[i];
         if (block.page_break_before && !page_empty()) {
             if (!new_page(block.offset)) break;
-            v_column_ = 0;
-            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+            reset_vertical_columns();
         }
         if (block.type == REPUB_BLOCK_IMAGE || block.image_index >= 0) {
             layout_image_block(block);
@@ -1532,8 +1544,7 @@ bool Builder::layout_vertical() {
             if (i + 1 < flow_.blocks.size() && !page_empty()) {
                 if (!new_page(flow_.blocks[i + 1].offset)) break;
             }
-            v_column_ = 0;
-            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+            reset_vertical_columns();
             continue;
         }
         if (block.type == REPUB_BLOCK_HR) {
@@ -1546,8 +1557,7 @@ bool Builder::layout_vertical() {
         layout_vertical_block(block);
         if (block.page_break_after && i + 1 < flow_.blocks.size()) {
             if (!new_page(flow_.blocks[i + 1].offset)) break;
-            v_column_ = 0;
-            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+            reset_vertical_columns();
         }
     }
     return true;

@@ -329,24 +329,7 @@ repub_err_t image_scale(const repub_platform_t* platform, const repub_image* src
         return REPUB_OK;
     }
 
-    const bool downscale = width < sw || height < sh;
-    if (!downscale) {
-        /* Upscale: nearest neighbour keeps edges crisp for pixel art/icons. */
-        for (int32_t y = 0; y < height; ++y) {
-            const int32_t sy = std::min(sh - 1, static_cast<int32_t>(
-                                                    (static_cast<int64_t>(y) * sh) / height));
-            for (int32_t x = 0; x < width; ++x) {
-                const int32_t sx = std::min(sw - 1, static_cast<int32_t>(
-                                                        (static_cast<int64_t>(x) * sw) / width));
-                std::memcpy(dst_pixels + (static_cast<size_t>(y) * width + x) * 4,
-                            src_pixels + (static_cast<size_t>(sy) * sw + sx) * 4, 4);
-            }
-        }
-        *out = dst;
-        return REPUB_OK;
-    }
-
-    /* Downscale: bilinear on premultiplied RGBA. */
+    /* Bilinear resample on premultiplied RGBA (enlargement and reduction). */
     for (int32_t y = 0; y < height; ++y) {
         const double fy = (static_cast<double>(y) + 0.5) * sh / height - 0.5;
         int32_t y0 = static_cast<int32_t>(std::floor(fy));
@@ -477,15 +460,6 @@ struct RGBA {
     double a = 0;
 };
 
-RGBA sample_nearest(const repub_image& image, double fx, double fy) {
-    int32_t x = static_cast<int32_t>(fx);
-    int32_t y = static_cast<int32_t>(fy);
-    x = std::clamp(x, 0, image.width - 1);
-    y = std::clamp(y, 0, image.height - 1);
-    const uint8_t* p = image.rgba.data() + (static_cast<size_t>(y) * image.width + x) * 4;
-    return RGBA{p[0] / 255.0, p[1] / 255.0, p[2] / 255.0, p[3] / 255.0};
-}
-
 RGBA sample_bilinear(const repub_image& image, double fx, double fy) {
     const double x = std::clamp(fx, 0.0, static_cast<double>(image.width) - 1.0);
     const double y = std::clamp(fy, 0.0, static_cast<double>(image.height) - 1.0);
@@ -583,7 +557,6 @@ repub_err_t canvas_draw_image(repub_canvas* canvas, const repub_image* image,
 
     const double scale_x = static_cast<double>(draw_w) / image->width;
     const double scale_y = static_cast<double>(draw_h) / image->height;
-    const bool bilinear = scale_x < 1.0 || scale_y < 1.0;
 
     std::vector<uint8_t> gray(static_cast<size_t>(clip.w) * static_cast<size_t>(clip.h), 255);
     const int max_level = canvas->max_level;
@@ -595,15 +568,15 @@ repub_err_t canvas_draw_image(repub_canvas* canvas, const repub_image* image,
             const int32_t canvas_x = clip.x + x;
             const double fx = (static_cast<double>(canvas_x - draw_x) + 0.5) / scale_x - 0.5;
             const double fy = (static_cast<double>(canvas_y - draw_y) + 0.5) / scale_y - 0.5;
-            const RGBA sample = bilinear ? sample_bilinear(*image, fx, fy)
-                                         : sample_nearest(*image, fx, fy);
+            const RGBA sample = sample_bilinear(*image, fx, fy);
             int32_t background_gray;
             if (background_level >= 0) {
                 background_gray = (std::clamp(background_level, 0, max_level) * 255) / max_level;
             } else {
                 background_gray = (canvas->get_pixel(canvas_x, canvas_y) * 255) / max_level;
             }
-            const double luma = 0.299 * sample.r + 0.587 * sample.g + 0.114 * sample.b;
+            const double luma =
+                (0.299 * sample.r + 0.587 * sample.g + 0.114 * sample.b) / 255.0;
             const double alpha = std::clamp(sample.a, 0.0, 1.0);
             const double mixed = luma * alpha + (background_gray / 255.0) * (1.0 - alpha);
             gray[static_cast<size_t>(y) * static_cast<size_t>(clip.w) + static_cast<size_t>(x)] =

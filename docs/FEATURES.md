@@ -80,7 +80,7 @@ rasterize glyphs itself.
 | First-line indent / margins / line height / tracking | ✅ | ✅ | ✅ |
 | Mixed fonts and sizes per span | ◐ | ✅ | ✅ |
 | Superscript / subscript | ✅ | ✅ | ✅ |
-| Images scaled/fitted into flow | ✅ | ✅ | ✅ |
+| Images interleaved with text (block-level, no CSS float wrap) | ✅ | ✅ | ✅ |
 | Full-bleed illustrations | ✅ | ✅ | ✅ |
 | Image-only pages | ✅ | ✅ | ✅ |
 | Footnote markers inline | ✅ | ✅ | ✅ |
@@ -104,7 +104,7 @@ rasterize glyphs itself.
 | Vertical text drawing (upright CJK, rotated Latin) | ✖ | ✅ | ✅ |
 | PNG/JPEG/GIF image decode | ✅ | ✅ | ✅ (BMP too) |
 | WebP decode | ✖ | ✅ | ◐ optional hook (no bundled decoder) |
-| Image scaling (bilinear downscale) | ✅ | ✅ | ✅ |
+| Image scaling (bilinear enlargement + reduction) | ✅ | ✅ (area reduction + bilinear zoom) | ✅ (bilinear both ways) |
 | Dithering (Bayer, Floyd–Steinberg) | ✅ | ✅ | ✅ |
 | Image zoom / pan / fit viewer | ✖ | ✅ | ✅ |
 | Page display list for custom renderers | ✅ | ◐ | ✅ |
@@ -188,13 +188,14 @@ Verified on the host (Windows/MinGW g++ 16, C++17):
 | Image decode/scale/probe/draw | 14 | pass |
 | Canvas/font/page render | 15 | pass |
 | Public API, reader, popup, viewer, facade | 10 | pass |
-| **Total** | **121** | **8/8 suites pass** |
+| wowaka themed fixture (all formats + vertical + bilinear) | 7 | pass |
+| **Total** | **128** | **9/9 suites pass** |
 
 Additional verification:
 - release build with `-Werror`: clean.
 - reduced builds compile: no-TTF, no-images, and a "text-only" configuration
   with CSS/vertical/hyphenation/images/TOC/progress all disabled.
-- 29 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
+- 30 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
   and empty-spine inputs return errors without crashing.
 - CLI end-to-end: `info`, `toc`, `text`, `blocks`, `notes`, `pages`, `render`
   (PNG/PGM/PPM), `image`, `cover`, `selftest`.

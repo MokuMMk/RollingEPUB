@@ -331,9 +331,12 @@ REPUB_TEST(image_scale_preserves_transparency) {
     }
     Image* scaled = nullptr;
     REPUB_CHECK_EQ(repub::image_scale(nullptr, source, 4, 4, &scaled), REPUB_OK);
-    /* The corner that came from the transparent pixel keeps a low alpha. */
+    /* Bilinear enlargement blends the transparent corner with its opaque
+     * neighbour, so the adjacent sample keeps a partial alpha instead of a
+     * hard edge (nearest sampling would keep it fully opaque). */
     REPUB_CHECK(scaled->rgba[3] < 64);
-    REPUB_CHECK_EQ(scaled->rgba[2 * 4 + 3], 255); /* opaque neighbour preserved */
+    REPUB_CHECK(scaled->rgba[2 * 4 + 3] > 128);
+    REPUB_CHECK(scaled->rgba[2 * 4 + 3] < 255);
     repub::image_free(scaled);
     repub::image_free(source);
 }

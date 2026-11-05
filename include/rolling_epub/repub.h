@@ -1,4 +1,4 @@
-﻿/*
+/*
  * RollingEPUB - portable EPUB parsing, layout and rendering library.
  *
  * SPDX-License-Identifier: MIT
@@ -562,7 +562,7 @@ int32_t repub_image_width(const repub_image_t *image);
 int32_t repub_image_height(const repub_image_t *image);
 /* RGBA8 pixels, row-major, stride = width * 4. */
 const uint8_t *repub_image_pixels(const repub_image_t *image);
-/* Scaled copy (bilinear for downscale, nearest for upscale). */
+/* Scaled copy (bilinear resampling for both enlargement and reduction). */
 repub_err_t repub_image_scale(const repub_platform_t *platform,
                               const repub_image_t *src, int32_t width,
                               int32_t height, repub_image_t **out);

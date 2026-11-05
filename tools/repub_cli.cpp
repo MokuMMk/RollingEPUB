@@ -785,8 +785,12 @@ int main(int argc, char** argv) {
         return command_notes(positional[0], spine);
     }
     if (command == "pages") {
-        if (positional.size() < 1) return fail("usage: repub_cli pages <book.epub>");
-        return command_pages(positional[0], options, 0);
+        if (positional.size() < 1) return fail("usage: repub_cli pages <book.epub> [chapter]");
+        int32_t chapter = 0;
+        if (positional.size() >= 2 && !parse_int(positional[1], &chapter)) {
+            return fail("invalid chapter index");
+        }
+        return command_pages(positional[0], options, chapter);
     }
     if (command == "render") {
         if (positional.size() < 3) {
