@@ -89,23 +89,7 @@ Apache-2.0 per the repository LICENSE scope) are reused.
   These are test-only artifacts, not part of the shipped library.
 
 -------------------------------------------------------------------------------
-5. LOCAL-ONLY Rolling Girl book (NOT part of the MIT-licensed library)
--------------------------------------------------------------------------------
-The song book `tests/fixtures/epub/rollinggirl.epub` is intended for LOCAL,
-PERSONAL reading only. It is not covered by the MIT license of RollingEPUB and
-must not be redistributed publicly.
-
-  * The book contains the "Rollingirl" artwork and a wowaka street portrait
-    sourced from Moegirl Commons; copyright remains with the original rights
-    holders and they are used here only for personal, non-commercial reading.
-  * Text is original commentary based on public sources; it contains no lyrics
-    and is not an official publication.
-
-Do not upload this book to public file hosts, app stores or any commercial
-distribution channel.
-
--------------------------------------------------------------------------------
-6. Trademarks
+5. Trademarks
 -------------------------------------------------------------------------------
 EPUB is a registered trademark of the W3C. CrossMux, CrossSIGO, Read Pico,
 kiikoread, Noto and other names are the property of their respective owners.
