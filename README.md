@@ -1,7 +1,7 @@
 # RollingEPUB
 
-[![ESP Component Registry](https://components.espressif.com/components/mokummk/rolling_epub/badge.svg)](https://components.espressif.com/components/mokummk/rolling_epub)
-[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
+[![ESP Component Registry](https://img.shields.io/badge/ESP_Component_Registry-v1.0.0-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://components.espressif.com/components/mokummk/rolling_epub)
+[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.0%2B-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
 [![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://www.arduino.cc/)
 
 **一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 [CrossMux](https://github.com/0x1abin/crossmux)
