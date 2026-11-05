@@ -36,6 +36,12 @@ project(RollingEPUB
     DESCRIPTION "Portable EPUB parsing, layout and rendering library"
     LANGUAGES C CXX)
 
+# MSVC defaults to the system code page; the library sources and tests contain
+# UTF-8 string literals, so force UTF-8 source/execution charsets.
+if(MSVC)
+    add_compile_options(/utf-8)
+endif()
+
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
