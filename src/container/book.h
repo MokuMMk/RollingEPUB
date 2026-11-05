@@ -79,6 +79,16 @@ struct repub_book {
     std::vector<std::string> css_hrefs;
     std::vector<EmbeddedFontRef> embedded_fonts;
 
+    /* Discovered navigation documents (package-relative). */
+    std::string nav_href;
+    std::string ncx_href;
+
+    /* Public C API mirrors.  Their const char* fields point into the
+     * corresponding SpineItem/TocEntry strings above, which are stable after
+     * book_open/book_load_toc completes.  Rebuilt whenever spine/TOC change. */
+    std::vector<repub_spine_item_t> public_spine;
+    std::vector<repub_toc_item_t> public_toc;
+
     CssSheet css;
     std::unique_ptr<FontManager> fonts;
 

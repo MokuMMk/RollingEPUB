@@ -1,0 +1,38 @@
+name: build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+
+jobs:
+  host:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release -j 4
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C Release
+
+  reduced-features:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        defs:
+          - "-DREPUB_ENABLE_TTF=OFF"
+          - "-DREPUB_ENABLE_IMAGES=OFF -DREPUB_ENABLE_IMAGE_ZOOM=OFF -DREPUB_ENABLE_GIF=OFF -DREPUB_ENABLE_COVER=OFF"
+          - "-DREPUB_ENABLE_CSS=OFF -DREPUB_ENABLE_HYPHENATION=OFF -DREPUB_ENABLE_VERTICAL_TEXT=OFF"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DREPUB_BUILD_TESTS=OFF -DREPUB_BUILD_TOOLS=OFF ${{ matrix.defs }}
+      - name: Build
+        run: cmake --build build -j 4
