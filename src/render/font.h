@@ -33,6 +33,10 @@ class FontMetrics {
     virtual int descender(int face, int px) const = 0;
     virtual int line_height(int face, int px) const = 0;
     virtual bool has_glyph(int face, int px, uint32_t codepoint) const = 0;
+    /* Map a CSS font-family name (empty = body default) and style bits
+     * (repub_span_flags / RunFlags) to a concrete face id.  Implementations
+     * must always return a usable face (falling back to the default face). */
+    virtual int resolve_face(std::string_view family, uint16_t style_flags) const = 0;
 };
 
 /* Draw flags for FontManager::draw_text. */

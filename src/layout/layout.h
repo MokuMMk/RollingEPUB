@@ -28,6 +28,10 @@ struct SpanExtra {
 /* Public opaque types defined here so API casts are zero-cost. */
 struct repub_page {
     repub_page_info_t info{};
+    /* Chapter that owns Flow::images/notes/links referenced by this page.
+     * Set by the layout builder; used by the page renderer to resolve image
+     * and note-icon resources without an extra parameter. */
+    const repub_chapter* chapter = nullptr;
     std::vector<repub_span_t> spans;
     std::vector<SpanExtra> span_extra;
     std::vector<repub_page_image_t> images;
