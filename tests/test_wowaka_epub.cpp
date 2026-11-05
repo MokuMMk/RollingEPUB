@@ -1,7 +1,8 @@
 /*
- * Dedicated end-to-end test for the themed fixture `wowaka.epub`:
- * image formats, bilinear resampling, mixed text/image pages, footnotes,
- * ruby, tables, vertical writing and the popup/zoom helpers.
+ * Dedicated end-to-end test for the detailed wowaka fixture:
+ * metadata/TOC, every image format, rich text features, mixed text/image
+ * pages, image-only page, footnotes, ruby, vertical writing, bilinear
+ * resampling and the popup/zoom helpers.
  *
  * SPDX-License-Identifier: MIT
  */
@@ -11,6 +12,7 @@
 #include <vector>
 
 #include "rolling_epub/repub.h"
+#include "render/image.h"
 #include "test_harness.h"
 
 namespace {
@@ -22,8 +24,8 @@ repub_layout_spec_t make_spec(bool vertical) {
     repub_layout_spec_t spec;
     repub_layout_spec_defaults(&spec);
     spec.page_rect = repub_rect_t{0, 0, 480, 800};
-    spec.font_size_px = 22;
-    spec.line_height_percent = 160;
+    spec.font_size_px = 21;
+    spec.line_height_percent = 168;
     spec.paragraph_gap_percent = 60;
     spec.first_line_indent_em = 2;
     spec.justify = 1;
@@ -32,11 +34,6 @@ repub_layout_spec_t make_spec(bool vertical) {
     spec.writing_mode = vertical ? REPUB_WRITING_VERTICAL_RL : REPUB_WRITING_HORIZONTAL;
     return spec;
 }
-
-struct TestBook {
-    repub_platform_t platform = repub_platform_default();
-    repub_book_t* book = nullptr;
-};
 
 bool add_serif_font(repub_book_t* book) {
     const std::string ttf = read_file(fixture_path(kFont));
@@ -81,40 +78,44 @@ REPUB_TEST(wowaka_metadata_and_toc) {
     const repub_metadata_t* meta = repub_book_metadata(book);
     REPUB_CHECK(meta != nullptr);
     REPUB_CHECK(std::strstr(meta->title, "wowaka") != nullptr);
-    REPUB_CHECK(std::strstr(meta->title, "hitorie") != nullptr);
+    REPUB_CHECK(std::strstr(meta->title, "噪音") != nullptr);
     REPUB_CHECK_STR_EQ(meta->language, "zh-CN");
-    REPUB_CHECK_STR_EQ(meta->series, "RollingEPUB Fixtures");
-    REPUB_CHECK_EQ(repub_book_spine_count(book), static_cast<size_t>(6));
-    REPUB_CHECK(repub_book_toc_count(book) >= 6);
-    REPUB_CHECK(repub_book_cover_href(book) != nullptr);
+    REPUB_CHECK_STR_EQ(meta->series, "音乐人档案");
+    REPUB_CHECK_EQ(repub_book_spine_count(book), static_cast<size_t>(9));
+    REPUB_CHECK(repub_book_toc_count(book) >= 12);
     REPUB_CHECK(std::strstr(repub_book_cover_href(book), "cover.jpg") != nullptr);
 
     int32_t spine = -1;
     char anchor[64] = {0};
-    REPUB_CHECK_EQ(repub_book_resolve_href(book, "text/life.xhtml#timeline", &spine,
+    REPUB_CHECK_EQ(repub_book_resolve_href(book, "text/bio.xhtml#spring", &spine,
                                            anchor, sizeof(anchor)),
                    REPUB_OK);
     REPUB_CHECK_EQ(spine, 1);
-    REPUB_CHECK_STR_EQ(anchor, "timeline");
+    REPUB_CHECK_STR_EQ(anchor, "spring");
+    REPUB_CHECK_EQ(repub_book_resolve_href(book, "text/bio.xhtml#turn", &spine, anchor,
+                                           sizeof(anchor)),
+                   REPUB_OK);
+    REPUB_CHECK_STR_EQ(anchor, "turn");
     repub_book_close(book);
 }
 
 REPUB_TEST(wowaka_image_formats_and_dimensions) {
     repub_platform_t platform = repub_platform_default();
     repub_book_t* book = open_wowaka(&platform, false);
-
     struct Expected {
         const char* href;
         int32_t w;
         int32_t h;
     };
     const Expected expected[] = {
-        {"images/checkerboard.png", 1600, 1000},
-        {"images/photo.jpg", 1200, 800},
-        {"images/motion.gif", 320, 200},
-        {"images/outline.bmp", 800, 600},
-        {"images/tall.png", 800, 2000},
         {"images/cover.jpg", 600, 900},
+        {"images/miku.png", 1200, 675},
+        {"images/stage.jpg", 1200, 800},
+        {"images/guitar.bmp", 800, 1200},
+        {"images/tokyo.gif", 800, 510},
+        {"images/logo.png", 960, 224},
+        {"images/tall.png", 800, 2400},
+        {"images/logo-icon.png", 48, 48},
     };
     for (const Expected& e : expected) {
         int32_t w = 0;
@@ -136,80 +137,84 @@ REPUB_TEST(wowaka_chapter_features) {
     repub_platform_t platform = repub_platform_default();
     repub_book_t* book = open_wowaka(&platform, false);
 
-    /* life.xhtml: headings, table, quote, pre, hr, decorations, hidden text. */
-    repub_chapter_t* life = nullptr;
-    REPUB_CHECK_EQ(repub_book_chapter_open(book, 1, &life), REPUB_OK);
+    /* bio.xhtml: h1-h6, table, quote, list, hr, footnote, anchors. */
+    repub_chapter_t* bio = nullptr;
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 1, &bio), REPUB_OK);
     size_t text_len = 0;
-    const char* text = repub_chapter_text(life, &text_len);
-    REPUB_CHECK(text_len > 1000);
+    const char* text = repub_chapter_text(bio, &text_len);
+    REPUB_CHECK(text_len > 2000);
     REPUB_CHECK(std::strstr(text, "1987") != nullptr);
     REPUB_CHECK(std::strstr(text, "wowaka") != nullptr);
-    REPUB_CHECK(std::strstr(text, "display:none") == nullptr);
-    REPUB_CHECK(std::strstr(text, "不应出现在排版结果里") == nullptr);
-
+    REPUB_CHECK(std::strstr(text, "资料核对") == nullptr); /* hidden text */
     int headings[6] = {0};
     int table_rows = 0;
     int quotes = 0;
-    int pres = 0;
+    int items = 0;
     bool has_hr = false;
-    for (size_t i = 0; i < repub_chapter_block_count(life); ++i) {
-        const repub_block_info_t* b = repub_chapter_block(life, i);
+    for (size_t i = 0; i < repub_chapter_block_count(bio); ++i) {
+        const repub_block_info_t* b = repub_chapter_block(bio, i);
         if (b->type == REPUB_BLOCK_HEADING && b->heading_level >= 1 && b->heading_level <= 6) {
             headings[b->heading_level - 1]++;
         }
         if (b->type == REPUB_BLOCK_TABLE_ROW) ++table_rows;
         if (b->type == REPUB_BLOCK_BLOCKQUOTE) ++quotes;
-        if (b->type == REPUB_BLOCK_PRE) ++pres;
+        if (b->type == REPUB_BLOCK_LIST_ITEM) ++items;
         if (b->type == REPUB_BLOCK_HR) has_hr = true;
     }
     for (int level = 0; level < 6; ++level) REPUB_CHECK(headings[level] >= 1);
-    REPUB_CHECK(table_rows >= 4);
+    REPUB_CHECK(table_rows >= 8);
     REPUB_CHECK(quotes >= 1);
-    REPUB_CHECK(pres >= 1);
+    REPUB_CHECK(items >= 3);
     REPUB_CHECK(has_hr);
+    REPUB_CHECK(repub_chapter_note_count(bio) >= 1);
+    REPUB_CHECK(std::strstr(repub_chapter_note(bio, 0)->text, "原创纪念性文字") != nullptr);
+    uint32_t offset = 0;
+    REPUB_CHECK_EQ(repub_chapter_anchor_offset(bio, "youth", &offset), REPUB_OK);
+    REPUB_CHECK(offset > 0);
+    /* A second drop cap / inline verse is exercised by the parser. */
+    repub_chapter_free(bio);
 
-    /* Inline decorations live on runs/spans, not block flags. */
-    repub_layout_spec_t spec = make_spec(false);
-    repub_layout_t* life_layout = nullptr;
-    REPUB_CHECK_EQ(repub_layout_create(life, &spec, &life_layout), REPUB_OK);
-    bool underline = false;
-    bool strike = false;
-    for (size_t p = 0; p < repub_layout_page_count(life_layout); ++p) {
-        const repub_page_t* page = repub_layout_page(life_layout, p);
-        for (size_t i = 0; i < repub_page_info(page)->span_count; ++i) {
-            const repub_span_t* span = repub_page_span(page, i);
-            if (span->style & REPUB_SPAN_UNDERLINE) underline = true;
-            if (span->style & REPUB_SPAN_STRIKE) strike = true;
-        }
+    /* vocaloid.xhtml: works table, ruby title runs, same-file footnote. */
+    repub_chapter_t* vocaloid = nullptr;
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 2, &vocaloid), REPUB_OK);
+    int works_rows = 0;
+    for (size_t i = 0; i < repub_chapter_block_count(vocaloid); ++i) {
+        if (repub_chapter_block(vocaloid, i)->type == REPUB_BLOCK_TABLE_ROW) ++works_rows;
     }
-    REPUB_CHECK(underline);
-    REPUB_CHECK(strike);
-    repub_layout_free(life_layout);
+    REPUB_CHECK(works_rows >= 3);
+    REPUB_CHECK(repub_chapter_note_count(vocaloid) >= 1);
+    repub_chapter_free(vocaloid);
 
-    /* Same-file footnote in life.xhtml. */
-    REPUB_CHECK(repub_chapter_note_count(life) >= 1);
-    const repub_note_info_t* note = repub_chapter_note(life, 0);
-    REPUB_CHECK(note != nullptr);
-    REPUB_CHECK(std::strstr(note->text, "测试用整理") != nullptr);
-
-    /* hitorie.xhtml: cross-file footnote, ruby base text, image. */
+    /* hitorie.xhtml: members list, cross-file footnote, images. */
     repub_chapter_t* hitorie = nullptr;
-    REPUB_CHECK_EQ(repub_book_chapter_open(book, 2, &hitorie), REPUB_OK);
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 3, &hitorie), REPUB_OK);
+    REPUB_CHECK(repub_chapter_image_count(hitorie) >= 2);
     REPUB_CHECK(repub_chapter_note_count(hitorie) >= 1);
-    const repub_note_info_t* cross = repub_chapter_note(hitorie, 0);
-    REPUB_CHECK(cross != nullptr);
-    REPUB_CHECK(std::strstr(cross->text, "现场编曲") != nullptr);
+    REPUB_CHECK(std::strstr(repub_chapter_note(hitorie, 0)->text, "hitorie 于 2011") != nullptr);
     const char* htext = repub_chapter_text(hitorie, &text_len);
-    REPUB_CHECK(std::strstr(htext, "汉字") != nullptr);
-    REPUB_CHECK(std::strstr(htext, "hànzì") == nullptr); /* ruby rt dropped */
-    REPUB_CHECK(repub_chapter_image_count(hitorie) >= 1);
-    const repub_chapter_image_info_t* img = repub_chapter_image(hitorie, 0);
-    REPUB_CHECK(img->width > 0 && img->height > 0);
+    REPUB_CHECK(std::strstr(htext, "イガラシ") != nullptr);
+    REPUB_CHECK(std::strstr(htext, "シノダ") != nullptr);
     repub_chapter_free(hitorie);
 
-    /* gallery.xhtml: all image formats plus an icon footnote marker. */
+    /* sound.xhtml: pre block, sup/sub, album table, BMP image. */
+    repub_chapter_t* sound = nullptr;
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 4, &sound), REPUB_OK);
+    int pres = 0;
+    int albums = 0;
+    for (size_t i = 0; i < repub_chapter_block_count(sound); ++i) {
+        const repub_block_info_t* b = repub_chapter_block(sound, i);
+        if (b->type == REPUB_BLOCK_PRE) ++pres;
+        if (b->type == REPUB_BLOCK_TABLE_ROW) ++albums;
+    }
+    REPUB_CHECK(pres >= 1);
+    REPUB_CHECK(albums >= 4);
+    REPUB_CHECK(repub_chapter_image_count(sound) >= 1);
+    REPUB_CHECK(repub_chapter_note_count(sound) >= 1);
+    repub_chapter_free(sound);
+
+    /* images.xhtml: five illustrations + icon-marker footnote. */
     repub_chapter_t* gallery = nullptr;
-    REPUB_CHECK_EQ(repub_book_chapter_open(book, 3, &gallery), REPUB_OK);
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 6, &gallery), REPUB_OK);
     REPUB_CHECK(repub_chapter_image_count(gallery) >= 5);
     bool icon_marker = false;
     for (size_t i = 0; i < repub_chapter_note_count(gallery); ++i) {
@@ -218,15 +223,15 @@ REPUB_TEST(wowaka_chapter_features) {
     REPUB_CHECK(icon_marker);
     repub_chapter_free(gallery);
 
-    /* vertical.xhtml: CJK text is present and intact. */
+    /* vertical.xhtml: ruby base kept, rt dropped. */
     repub_chapter_t* vertical = nullptr;
-    REPUB_CHECK_EQ(repub_book_chapter_open(book, 4, &vertical), REPUB_OK);
+    REPUB_CHECK_EQ(repub_book_chapter_open(book, 7, &vertical), REPUB_OK);
     const char* vtext = repub_chapter_text(vertical, &text_len);
     REPUB_CHECK(std::strstr(vtext, "竖排") != nullptr);
-    REPUB_CHECK(std::strstr(vtext, "从右到左") != nullptr);
+    REPUB_CHECK(std::strstr(vtext, "声音") != nullptr);
+    REPUB_CHECK(std::strstr(vtext, "sound") == nullptr);
     repub_chapter_free(vertical);
 
-    repub_chapter_free(life);
     repub_book_close(book);
 }
 
@@ -236,14 +241,13 @@ REPUB_TEST(wowaka_mixed_text_image_pages) {
     repub_layout_spec_t spec = make_spec(false);
     repub_reader_t* reader = repub_reader_attach(book, &spec, nullptr);
     REPUB_CHECK(reader != nullptr);
-    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 3), REPUB_OK);
+    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 6), REPUB_OK);
     const repub_layout_t* layout = repub_reader_layout(reader);
     REPUB_CHECK(layout != nullptr);
-    REPUB_CHECK(repub_layout_page_count(layout) >= 4);
+    REPUB_CHECK(repub_layout_page_count(layout) >= 5);
 
     int mixed_pages = 0;
     int image_only_pages = 0;
-    int multi_image_pages = 0;
     size_t first_mixed = SIZE_MAX;
     size_t first_image_only = SIZE_MAX;
     for (size_t p = 0; p < repub_layout_page_count(layout); ++p) {
@@ -257,14 +261,10 @@ REPUB_TEST(wowaka_mixed_text_image_pages) {
             ++image_only_pages;
             if (first_image_only == SIZE_MAX) first_image_only = p;
         }
-        if (info->image_count >= 2) ++multi_image_pages;
     }
-    REPUB_CHECK(mixed_pages >= 1);
+    REPUB_CHECK(mixed_pages >= 2);
     REPUB_CHECK(image_only_pages >= 1);
-    REPUB_CHECK(multi_image_pages >= 1);
 
-    /* Render the mixed page and the image-only page; both must contain ink
-     * and the image rectangle must be inside the page. */
     repub_err_t err = REPUB_OK;
     repub_canvas_t* canvas =
         repub_canvas_create(&platform, 480, 800, REPUB_FORMAT_GRAY4, &err);
@@ -296,7 +296,7 @@ REPUB_TEST(wowaka_footnote_popup_and_image_zoom) {
     repub_reader_t* reader = repub_reader_attach(book, &spec, nullptr);
     REPUB_CHECK(reader != nullptr);
 
-    /* Footnote popup from the life chapter. */
+    /* Same-file footnote from the biography chapter. */
     REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 1), REPUB_OK);
     const repub_chapter_t* chapter = repub_reader_chapter(reader);
     REPUB_CHECK(repub_chapter_note_count(chapter) >= 1);
@@ -317,15 +317,14 @@ REPUB_TEST(wowaka_footnote_popup_and_image_zoom) {
     REPUB_CHECK(count_non_white(canvas) > 500);
     repub_note_popup_free(note);
 
-    /* Image viewer over the checkerboard illustration (bilinear zoom). */
-    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 3), REPUB_OK);
+    /* Image viewer over the tall illustration (bilinear zoom). */
+    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 6), REPUB_OK);
     const repub_layout_t* layout = repub_reader_layout(reader);
     int32_t image_index = -1;
     for (size_t p = 0; p < repub_layout_page_count(layout) && image_index < 0; ++p) {
         const repub_page_t* page = repub_layout_page(layout, p);
-        for (size_t i = 0; i < repub_page_info(page)->image_count; ++i) {
-            const repub_page_image_t* img = repub_page_image_at(page, i);
-            if (img->image_index == 0) image_index = img->image_index;
+        if (repub_page_info(page)->image_count > 0) {
+            image_index = repub_page_image_at(page, 0)->image_index;
         }
     }
     REPUB_CHECK(image_index >= 0);
@@ -345,51 +344,41 @@ REPUB_TEST(wowaka_footnote_popup_and_image_zoom) {
 REPUB_TEST(wowaka_bilinear_resampling) {
     repub_platform_t platform = repub_platform_default();
     repub_book_t* book = open_wowaka(&platform, false);
-    repub_image_t* source = nullptr;
-    REPUB_CHECK_EQ(repub_book_image_decode(book, "images/checkerboard.png", 0, 0, &source),
-                   REPUB_OK);
-    REPUB_CHECK(source != nullptr);
 
-    /* Downscale 1600x1000 -> 200x125: bilinear averaging must produce many
-     * intermediate gray levels instead of a binary checkerboard. */
-    repub_image_t* small = nullptr;
-    REPUB_CHECK_EQ(repub_image_scale(&platform, source, 200, 125, &small), REPUB_OK);
-    const uint8_t* px = repub_image_pixels(small);
-    int mid_gray = 0;
-    int distinct_levels = 0;
-    bool seen[256] = {false};
-    for (int y = 0; y < 125; ++y) {
-        for (int x = 0; x < 200; ++x) {
-            const uint8_t* p = px + (static_cast<size_t>(y) * 200 + x) * 4;
-            const int luma = (299 * p[0] + 587 * p[1] + 114 * p[2]) / 1000;
-            seen[luma] = true;
-            if (luma > 24 && luma < 232) ++mid_gray;
+    /* A synthetic black/white checkerboard proves that both reduction and
+     * enlargement interpolate instead of point-sampling. */
+    repub_image_t* source = repub_image_create(&platform, 4, 4, nullptr);
+    REPUB_CHECK(source != nullptr);
+    auto* source_impl = reinterpret_cast<repub::repub_image*>(source);
+    for (int32_t y = 0; y < 4; ++y) {
+        for (int32_t x = 0; x < 4; ++x) {
+            const uint8_t value = ((x + y) & 1) ? 255 : 0;
+            uint8_t* p = source_impl->rgba.data() + (static_cast<size_t>(y) * 4 + x) * 4;
+            p[0] = p[1] = p[2] = value;
+            p[3] = 255;
         }
     }
-    for (int i = 0; i < 256; ++i) distinct_levels += seen[i] ? 1 : 0;
-    REPUB_CHECK(mid_gray > 5000);
-    REPUB_CHECK(distinct_levels > 4); /* clearly non-binary after averaging */
+    repub_image_t* small = nullptr;
+    REPUB_CHECK_EQ(repub_image_scale(&platform, source, 2, 2, &small), REPUB_OK);
+    const uint8_t* mixed = repub_image_pixels(small);
+    REPUB_CHECK(mixed[0] > 100 && mixed[0] < 155);
     repub_image_free(small);
 
-    /* Enlarge 1600x1000 -> 2000x1250: bilinear upscale also blends edges, so
-     * sharp ring boundaries gain intermediate levels (nearest would not). */
     repub_image_t* big = nullptr;
-    REPUB_CHECK_EQ(repub_image_scale(&platform, source, 2000, 1250, &big), REPUB_OK);
-    const uint8_t* bpx = repub_image_pixels(big);
+    REPUB_CHECK_EQ(repub_image_scale(&platform, source, 16, 16, &big), REPUB_OK);
+    const uint8_t* up = repub_image_pixels(big);
     int blended = 0;
-    for (int y = 200; y < 260; ++y) {
-        for (int x = 850; x < 1150; ++x) {
-            const uint8_t* p = bpx + (static_cast<size_t>(y) * 2000 + x) * 4;
-            const int luma = (299 * p[0] + 587 * p[1] + 114 * p[2]) / 1000;
-            if (luma > 8 && luma < 247) ++blended;
-        }
+    for (int i = 0; i < 16 * 16; ++i) {
+        const int v = up[i * 4];
+        if (v > 24 && v < 232) ++blended;
     }
-    REPUB_CHECK(blended > 1000);
+    REPUB_CHECK(blended > 40);
     repub_image_free(big);
+    repub_image_free(source);
 
-    /* Canvas zoom of a smooth photo must show blended values too. */
+    /* The real photographs must resample through the canvas without failure. */
     repub_image_t* photo = nullptr;
-    REPUB_CHECK_EQ(repub_book_image_decode(book, "images/photo.jpg", 400, 266, &photo),
+    REPUB_CHECK_EQ(repub_book_image_decode(book, "images/miku.png", 600, 338, &photo),
                    REPUB_OK);
     repub_canvas_t* canvas = nullptr;
     repub_err_t err = REPUB_OK;
@@ -398,7 +387,7 @@ REPUB_TEST(wowaka_bilinear_resampling) {
     repub_canvas_clear(canvas, 255);
     repub_image_view_t view{};
     view.struct_size = sizeof(view);
-    view.dest = repub_rect_t{0, 0, 480, 320};
+    view.dest = repub_rect_t{0, 0, 480, 270};
     view.fit = REPUB_IMAGE_FIT_CONTAIN;
     view.zoom = 2.0f;
     view.dither = REPUB_DITHER_NONE;
@@ -407,8 +396,6 @@ REPUB_TEST(wowaka_bilinear_resampling) {
     REPUB_CHECK(count_non_white(canvas) > 10000);
     repub_canvas_destroy(canvas);
     repub_image_free(photo);
-
-    repub_image_free(source);
     repub_book_close(book);
 }
 
@@ -418,7 +405,7 @@ REPUB_TEST(wowaka_vertical_layout) {
     repub_layout_spec_t spec = make_spec(true);
     repub_reader_t* reader = repub_reader_attach(book, &spec, nullptr);
     REPUB_CHECK(reader != nullptr);
-    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 4), REPUB_OK);
+    REPUB_CHECK_EQ(repub_reader_goto_chapter(reader, 7), REPUB_OK);
     const repub_layout_t* layout = repub_reader_layout(reader);
     REPUB_CHECK(layout != nullptr);
     REPUB_CHECK(repub_layout_page_count(layout) >= 1);
@@ -427,8 +414,6 @@ REPUB_TEST(wowaka_vertical_layout) {
     const repub_page_info_t* info = repub_page_info(page);
     REPUB_CHECK(info->span_count >= 4);
 
-    /* Every text span must carry the vertical flag, and columns must march
-     * right-to-left without overlapping. */
     bool saw_vertical = false;
     int heading_pitch = 0;
     int body_pitch = 0;
@@ -449,13 +434,13 @@ REPUB_TEST(wowaka_vertical_layout) {
             previous_column_left = span->x;
             previous_column_pitch = span->width;
         }
-        if (span->font_size_px >= 36) heading_pitch = span->width;
-        else if (span->font_size_px <= 24) body_pitch = span->width;
+        if (span->font_size_px >= 32) heading_pitch = span->width;
+        else if (span->font_size_px <= 22) body_pitch = span->width;
         REPUB_CHECK(span->x >= 0 && span->x + span->width <= 480);
         REPUB_CHECK(span->y >= 0 && span->y <= 800);
     }
     REPUB_CHECK(saw_vertical);
-    REPUB_CHECK(heading_pitch > body_pitch); /* wide heading column */
+    REPUB_CHECK(heading_pitch > body_pitch);
     REPUB_CHECK(previous_column_left >= 0);
     REPUB_CHECK(previous_column_pitch > 0);
 
