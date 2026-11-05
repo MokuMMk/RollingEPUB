@@ -1106,12 +1106,13 @@ bool Builder::layout_text_block(const FlowBlock& block) {
     if (cap_lines > 0 && pos < limit) {
         uint32_t first_cp = 0;
         size_t first_n = decode_cp(flow_.text.data() + pos, limit - pos, &first_cp);
-        cap_bytes = first_n;
-        if ((prohibited_line_start(first_cp) || prohibited_line_end(first_cp)) && pos + first_n < limit) {
-            uint32_t second_cp = 0;
-            size_t second_n = decode_cp(flow_.text.data() + pos + first_n, limit - pos - first_n, &second_cp);
-            (void)second_cp;
-            if (second_n > 0 && cap_bytes + second_n <= 12) cap_bytes += second_n;
+        /* An opening quote/bracket cannot be a drop cap: consuming it here
+         * would hide it (or the following letter) from the normal text flow.
+         * Fall back to a normal paragraph instead. */
+        if (prohibited_line_start(first_cp) || prohibited_line_end(first_cp)) {
+            cap_lines = 0;
+        } else {
+            cap_bytes = first_n;
         }
         if (cap_bytes > 0) {
             std::string_view cap_text(flow_.text.data() + pos, cap_bytes);

@@ -92,15 +92,16 @@ Apache-2.0 per the repository LICENSE scope) are reused.
 -------------------------------------------------------------------------------
 5. LOCAL-ONLY wowaka book assets (NOT part of the MIT-licensed library)
 -------------------------------------------------------------------------------
-The personal commemorative book `tests/fixtures/epub/wowaka.epub` and the
-source assets in `tools/assets/wowaka/` are intended for LOCAL, PERSONAL
-reading only. They are not covered by the MIT license of RollingEPUB and must
-not be redistributed publicly.
+The personal commemorative book `tests/fixtures/epub/wowaka.epub`, the song
+book `tests/fixtures/epub/rollinggirl.epub`, and the source assets in
+`tools/assets/wowaka/` and `tools/assets/rollinggirl/` are intended for LOCAL,
+PERSONAL reading only. They are not covered by the MIT license of RollingEPUB
+and must not be redistributed publicly.
 
-  * wowaka street portrait, and the artwork for "Rollingirl",
-    "Unknown Mother-Goose" and "Vocaloid worlds end dancehall": sourced from
-    Moegirl Commons; copyright remains with the original rights holders and
-    they are used here only for personal, non-commercial study/introduction.
+  * wowaka street portrait, the "Rollingirl" artwork, and the
+    "Unknown Mother-Goose" / "Vocaloid worlds end dancehall" artwork: sourced
+    from Moegirl Commons; copyright remains with the original rights holders
+    and they are used here only for personal, non-commercial reading.
   * The remaining scene photographs (Hatsune Miku concert, live stage,
     electric guitar, Tokyo at night) are CC BY / CC BY-SA from Wikimedia
     Commons; the hitorie logo is public domain. Author and license details
