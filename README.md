@@ -232,6 +232,32 @@ platform.allocator.alloc = psram_alloc; /* 可选：PSRAM 分配器 */
 推荐：页面 canvas 复用静态 framebuffer（`repub_canvas_wrap`），图片/章节缓存走
 PSRAM；在 ESP32-C3 级设备上关闭 TTF、竖排、连字与灰度以控制体积。
 
+## 自动发布到 ESP Component Registry
+
+`.github/workflows/upload-component.yml` 会在推送 `v*` tag 时自动上传组件，
+使用 GitHub OIDC 认证，不需要在仓库里保存 API token。
+
+发布新版本：
+
+```bash
+# 1. 修改 idf_component.yml 里的 version
+# 2. 提交并推送
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+Workflow 会校验 tag 与 `idf_component.yml` 版本一致，然后上传。已存在的版本会被跳过，
+不会覆盖。
+
+首次使用前，在 Registry 里配置 Trusted Uploader：
+
+- 打开 https://components.espressif.com → Permissions
+- 选择 namespace `mokummk` → 组件 `rolling_epub` → Trusted Uploaders
+- 添加：Repository `MokuMMk/RollingEPUB`、Workflow `upload-component.yml`、
+  Branch `master`（Branch 可留空）
+
+也可以在 GitHub Actions 页面手动运行 `Upload component` workflow。
+
 ## PlatformIO / Arduino
 
 根目录提供 `library.json` 与 `library.properties`：

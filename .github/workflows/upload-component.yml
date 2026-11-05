@@ -1,0 +1,36 @@
+name: Upload component
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches manifest version
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(awk -F'"' '/^version:/{print $2; exit}' idf_component.yml)"
+          echo "tag=$tag manifest_version=$version"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag v${tag} does not match idf_component.yml version '${version}'"
+            exit 1
+          fi
+
+      - name: Upload to ESP Component Registry
+        uses: espressif/upload-components-ci-action@v2
+        with:
+          components: "rolling_epub: ."
+          namespace: "mokummk"
