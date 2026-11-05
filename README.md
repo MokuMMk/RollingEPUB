@@ -1,3 +1,6 @@
+[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.x-E7352C?logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
+[![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
+
 # RollingEPUB
 
 **一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 CrossSIGO（CrossMux）与 Read Pico
