@@ -195,7 +195,10 @@ int32_t spine_index_for_target(const repub_book& book, const std::string& target
 
 repub_err_t parse_container(repub_book* book, std::string* opf_path) {
     const int index = book->zip.find("META-INF/container.xml");
-    if (index < 0) return REPUB_ERR_FORMAT;
+    if (index < 0) {
+        logf(book->platform, LOG_ERROR, "META-INF/container.xml not found in archive");
+        return REPUB_ERR_FORMAT;
+    }
     std::string xml;
     repub_err_t err = book->zip.extract_to_string(static_cast<size_t>(index), &xml,
                                                   kMaxContainerXmlBytes);
@@ -223,7 +226,11 @@ repub_err_t parse_container(repub_book* book, std::string* opf_path) {
             if (found) break;
         }
     }
-    if (parser.failed() || !root_container || !found) return REPUB_ERR_FORMAT;
+    if (parser.failed() || !root_container || !found) {
+        logf(book->platform, LOG_ERROR, "container.xml parse failed (failed=%d root=%d found=%d)",
+             parser.failed() ? 1 : 0, root_container ? 1 : 0, found ? 1 : 0);
+        return REPUB_ERR_FORMAT;
+    }
     return REPUB_OK;
 }
 
@@ -265,7 +272,10 @@ void set_cover_from_manifest(repub_book* book, const std::string& cover_id) {
 
 repub_err_t parse_opf(repub_book* book) {
     const int index = book->zip.find(book->opf_path);
-    if (index < 0) return REPUB_ERR_FORMAT;
+    if (index < 0) {
+        logf(book->platform, LOG_ERROR, "OPF not found in archive: %s", book->opf_path.c_str());
+        return REPUB_ERR_FORMAT;
+    }
     std::string xml;
     repub_err_t err = book->zip.extract_to_string(static_cast<size_t>(index), &xml, kMaxOpfBytes);
     if (err != REPUB_OK) return err;
@@ -397,7 +407,11 @@ repub_err_t parse_opf(repub_book* book) {
             if (local == "package" && parser.depth() == 1) break;
         }
     }
-    if (parser.failed() || !root_package) return REPUB_ERR_FORMAT;
+    if (parser.failed() || !root_package) {
+        logf(book->platform, LOG_ERROR, "OPF parse failed (failed=%d root=%d): %s",
+             parser.failed() ? 1 : 0, root_package ? 1 : 0, parser.error().c_str());
+        return REPUB_ERR_FORMAT;
+    }
 
     /* Spine: every itemref keeps its position so TOC indices stay stable even
      * when a manifest reference is missing. */
@@ -425,7 +439,11 @@ repub_err_t parse_opf(repub_book* book) {
         }
         book->spine.push_back(std::move(item));
     }
-    if (book->spine.empty()) return REPUB_ERR_FORMAT;
+    if (book->spine.empty()) {
+        logf(book->platform, LOG_ERROR, "OPF spine is empty (itemrefs=%u)",
+             static_cast<unsigned>(spine_refs.size()));
+        return REPUB_ERR_FORMAT;
+    }
 
     /* NCX from the spine toc attribute wins over a bare manifest media type. */
     if (!spine_toc_id.empty()) {
@@ -538,13 +556,13 @@ bool parse_ncx_toc(repub_book* book, const std::string& ncx_href) {
                 continue;
             }
             if (!root_ncx) continue;
-            if (local == "navMap") {
+            if (local == "navmap") {
                 in_nav_map = true;
                 nav_map_depth = parser.depth();
                 continue;
             }
             if (!in_nav_map) continue;
-            if (local == "navPoint") {
+            if (local == "navpoint") {
                 NcxNode node;
                 node.element_depth = parser.depth();
                 node.level = static_cast<int>(stack.size());
@@ -569,7 +587,7 @@ bool parse_ncx_toc(repub_book* book, const std::string& ncx_href) {
             continue;
         }
         if (token != XmlParser::Token::EndElement) continue;
-        if (local == "navPoint" && !stack.empty() && stack.back().element_depth == parser.depth()) {
+        if (local == "navpoint" && !stack.empty() && stack.back().element_depth == parser.depth()) {
             NcxNode node = std::move(stack.back());
             stack.pop_back();
             std::string anchor;
@@ -581,7 +599,7 @@ bool parse_ncx_toc(repub_book* book, const std::string& ncx_href) {
             }
             continue;
         }
-        if (local == "navMap" && parser.depth() == nav_map_depth) {
+        if (local == "navmap" && parser.depth() == nav_map_depth) {
             in_nav_map = false;
             break;
         }
@@ -820,6 +838,8 @@ repub_err_t book_open(repub_book* book, const repub_platform_t* platform,
     if (err == REPUB_OK) book->opf_dir = dirname_of(book->opf_path);
     if (err == REPUB_OK) err = parse_opf(book);
     if (err != REPUB_OK) {
+        logf(book->platform, LOG_ERROR, "book_open failed while parsing package: %d",
+             static_cast<int>(err));
         book_close(book);
         return err;
     }

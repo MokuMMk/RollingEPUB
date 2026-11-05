@@ -110,9 +110,11 @@ std::string XmlParser::attr(std::string_view name, std::string_view fallback) co
 bool XmlParser::next() {
     if (failed_) return false;
 
-    /* Lazy decrement of the open-element count for the EndElement token that
-     * was returned by the previous call. */
-    if (token_ == Token::EndElement) {
+    /* Lazy decrement of the open-element count for the previous token:
+     *  - EndElement closes the element it named;
+     *  - a self-closing StartElement opened and closed at once.
+     * This keeps depth() consistent for both tokens of an element pair. */
+    if (token_ == Token::EndElement || (token_ == Token::StartElement && self_closing_)) {
         if (depth_ > 0) --depth_;
     }
 
@@ -338,7 +340,9 @@ bool XmlParser::parse_start_or_end() {
 
     token_ = Token::StartElement;
     self_closing_ = self_closing;
-    if (!self_closing_) ++depth_;
+    /* Both kinds of start tag report depth_ + 1; a self-closing tag is popped
+     * lazily at the start of the next next() call. */
+    ++depth_;
     return true;
 }
 

@@ -6,6 +6,7 @@
  */
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -26,20 +27,62 @@ const char* kNavBook = "epub/readpico_\u6cb3\u8fb9\u8bb0\u4e8b_nav.epub";
 const char* kNcxBook = "epub/readpico_\u6cb3\u8fb9\u8bb0\u4e8b_ncx.epub";
 const char* kPngBook = "epub/test_png_images.epub";
 const char* kJpegBook = "epub/test_jpeg_images.epub";
+const char* kLatinBook = "epub/latin.epub";
 
-/* Small RAII wrapper around the public book handle. */
+bool has_non_ascii(std::string_view text) {
+    for (const char c : text) {
+        if (static_cast<unsigned char>(c) >= 0x80) return true;
+    }
+    return false;
+}
+
+/* std::filesystem::u8path converts UTF-8 to the native wide path on Windows;
+ * newer libstdc++ marks it deprecated even in C++17, so silence that here. */
+std::filesystem::path native_path(const std::string& utf8) {
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+    return std::filesystem::u8path(utf8);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+}
+
+/* Small RAII wrapper around the public book handle.  Fixtures whose names are
+ * not ASCII (e.g. the Read Pico CJK fixtures) are copied to an ASCII temp name
+ * first: on Windows the narrow-path platform file callbacks cannot open UTF-8
+ * names, while the native path API does. */
 struct BookHandle {
     repub_book_t* book = nullptr;
+    std::string temp_path;
     explicit BookHandle(const char* fixture,
                         const repub_open_options_t* options = nullptr) {
-        const std::string path = fixture_path(fixture);
+        std::string path = fixture_path(fixture);
+        if (has_non_ascii(path)) {
+            static int counter = 0;
+            temp_path = "repub_test_fixture_" + std::to_string(++counter) + ".epub";
+            std::error_code ec;
+            std::filesystem::copy_file(native_path(path), native_path(temp_path),
+                                       std::filesystem::copy_options::overwrite_existing, ec);
+            if (ec) temp_path.clear();
+            else path = temp_path;
+        }
         repub_err_t err = REPUB_OK;
         book = repub_book_open(&platform, path.c_str(), options, &err);
+        if (!book) {
+            std::fprintf(stderr, "open failed for %s: err=%d (%s)\n", fixture,
+                         static_cast<int>(err), repub_err_str(err));
+        }
         REPUB_CHECK(book != nullptr);
         REPUB_CHECK_EQ(err, REPUB_OK);
     }
     ~BookHandle() {
         if (book) repub_book_close(book);
+        if (!temp_path.empty()) {
+            std::error_code ec;
+            std::filesystem::remove(native_path(temp_path), ec);
+        }
     }
     repub_platform_t platform = repub_platform_default();
 };
@@ -309,11 +352,41 @@ REPUB_TEST(zip_reader) {
     REPUB_CHECK_EQ(written, sizeof(prefix));
     REPUB_CHECK(std::memcmp(prefix, xml.data(), sizeof(prefix)) == 0);
 
+    /* Stored ("stored") entry: EPUB mimetype must extract verbatim. */
+    const int mimetype = zip.find("mimetype");
+    REPUB_CHECK(mimetype >= 0);
+    std::string mime;
+    REPUB_CHECK_EQ(zip.extract_to_string(static_cast<size_t>(mimetype), &mime), REPUB_OK);
+    REPUB_CHECK(starts_with(mime, "application/epub+zip"));
+
     /* Bounds are enforced by the caller-supplied cap. */
     REPUB_CHECK_EQ(zip.extract(static_cast<size_t>(container), &bytes, 4), REPUB_ERR_LIMIT);
     zip.close();
     REPUB_CHECK(!zip.is_open());
     REPUB_CHECK_EQ(zip.open(platform, path + ".missing"), REPUB_ERR_IO);
+
+    /* A ZIP with zero entries is valid and opens to an empty archive. */
+    const std::string empty_zip_path = "repub_test_empty.epub";
+    {
+        static const uint8_t kEmptyZip[22] = {0x50, 0x4b, 0x05, 0x06};
+        std::ofstream out(empty_zip_path, std::ios::binary | std::ios::trunc);
+        out.write(reinterpret_cast<const char*>(kEmptyZip), sizeof(kEmptyZip));
+    }
+    ZipArchive empty;
+    REPUB_CHECK_EQ(empty.open(platform, empty_zip_path), REPUB_OK);
+    REPUB_CHECK_EQ(empty.entry_count(), 0u);
+    REPUB_CHECK_EQ(empty.find("anything"), -1);
+    empty.close();
+    std::remove(empty_zip_path.c_str());
+
+    /* Zero-byte file is not an archive. */
+    const std::string zero_path = "repub_test_zero.epub";
+    {
+        std::ofstream out(zero_path, std::ios::binary | std::ios::trunc);
+    }
+    ZipArchive zero;
+    REPUB_CHECK_EQ(zero.open(platform, zero_path), REPUB_ERR_FORMAT);
+    std::remove(zero_path.c_str());
 }
 
 /* ------------------------------------------------------------------------- */
@@ -471,6 +544,114 @@ REPUB_TEST(book_image_fixtures) {
     REPUB_CHECK(height > 0);
     REPUB_CHECK_EQ(repub_book_image_dims(jpeg.book, "images/nope.png", &width, &height),
                    REPUB_ERR_NOT_FOUND);
+}
+
+REPUB_TEST(book_cover_series_fixture) {
+    BookHandle handle(kLatinBook);
+    repub_book_t* book = handle.book;
+    const repub_metadata_t* metadata = repub_book_metadata(book);
+    REPUB_CHECK(metadata != nullptr);
+    REPUB_CHECK_STR_EQ(metadata->title, "The Rolling EPUB");
+    REPUB_CHECK_STR_EQ(metadata->author, "RollingEPUB Test Suite");
+    REPUB_CHECK_STR_EQ(metadata->publisher, "RollingEPUB");
+    REPUB_CHECK_STR_EQ(metadata->date, "2026-01-01");
+    REPUB_CHECK_STR_EQ(metadata->description, "Deterministic test fixture.");
+    REPUB_CHECK_STR_EQ(metadata->series, "Test Series");
+    REPUB_CHECK(metadata->series_index == 2.0f);
+    REPUB_CHECK_EQ(repub_book_spine_count(book), 3u);
+
+    /* Cover discovered from <meta name="cover"> / properties="cover-image";
+     * hrefs in the OPF are package-relative ("../images/cover.png"). */
+    const char* cover = repub_book_cover_href(book);
+    REPUB_CHECK(cover != nullptr);
+    REPUB_CHECK_STR_EQ(cover, "images/cover.png");
+    size_t cover_size = 0;
+    REPUB_CHECK_EQ(repub_book_resource_size(book, cover, &cover_size), REPUB_OK);
+    REPUB_CHECK(cover_size > 8);
+    int32_t width = 0;
+    int32_t height = 0;
+    REPUB_CHECK_EQ(repub_book_image_dims(book, cover, &width, &height), REPUB_OK);
+    REPUB_CHECK(width > 0);
+    REPUB_CHECK(height > 0);
+
+    /* CSS referenced from a sibling directory. */
+    size_t css_size = 0;
+    REPUB_CHECK_EQ(repub_book_resource_size(book, "../styles/book.css", &css_size), REPUB_OK);
+    REPUB_CHECK(css_size > 0);
+
+    REPUB_CHECK(repub_book_toc_count(book) > 0u);
+    int32_t spine_index = -1;
+    REPUB_CHECK_EQ(repub_book_resolve_href(book, "chapter2.xhtml", &spine_index, nullptr, 0),
+                   REPUB_OK);
+    REPUB_CHECK_EQ(spine_index, 1);
+}
+
+/* Internal container contract: loaded flags, content weighting, byte offsets. */
+REPUB_TEST(book_internals) {
+    repub_platform_t platform = repub_platform_default();
+    repub::repub_book internal;
+    REPUB_CHECK_EQ(book_open(&internal, &platform, fixture_path(kMatrix).c_str(), nullptr),
+                   REPUB_OK);
+    REPUB_CHECK(internal.opened);
+    REPUB_CHECK(internal.css_loaded);
+    REPUB_CHECK(internal.toc_loaded);
+    REPUB_CHECK_STR_EQ(internal.opf_path, "OEBPS/content.opf");
+    REPUB_CHECK_STR_EQ(internal.opf_dir, "OEBPS");
+    REPUB_CHECK(internal.content_bytes > 0);
+    REPUB_CHECK_EQ(book_spine_byte_offset(internal, 0), 0u);
+    REPUB_CHECK_EQ(book_spine_byte_offset(internal, 1), internal.spine[0].size);
+    REPUB_CHECK_EQ(book_spine_byte_offset(internal, internal.spine.size()),
+                   internal.content_bytes);
+    REPUB_CHECK_EQ(internal.css.rule_count() > 0, true);
+    REPUB_CHECK(internal.cover_href.empty());
+    REPUB_CHECK(internal.ncx_href == "OEBPS/toc.ncx");
+    REPUB_CHECK(internal.nav_href == "OEBPS/nav.xhtml");
+
+    std::string html;
+    REPUB_CHECK_EQ(book_read_resource_string(internal, "chapter1.xhtml", &html,
+                                             REPUB_MAX_CHAPTER_BYTES),
+                   REPUB_OK);
+    REPUB_CHECK(html.find("<html") != std::string::npos);
+    int32_t spine_index = -1;
+    std::string anchor;
+    REPUB_CHECK_EQ(book_resolve_href(internal, "chapter2.xhtml#frag", &spine_index, &anchor),
+                   REPUB_OK);
+    REPUB_CHECK_EQ(spine_index, 1);
+    REPUB_CHECK_STR_EQ(anchor, "frag");
+    REPUB_CHECK(book_toc_title_for_spine(internal, 2).size() > 0);
+
+    /* Skip-TOC option leaves toc_loaded true with no entries. */
+    repub_open_options_t options{};
+    options.struct_size = sizeof(options);
+    options.flags = REPUB_OPEN_SKIP_TOC;
+    repub::repub_book skipped;
+    REPUB_CHECK_EQ(book_open(&skipped, &platform, fixture_path(kMatrix).c_str(), &options),
+                   REPUB_OK);
+    REPUB_CHECK(skipped.toc_loaded);
+    REPUB_CHECK(skipped.toc.empty());
+    book_close(&skipped);
+
+    book_close(&internal);
+    REPUB_CHECK(!internal.opened);
+    REPUB_CHECK(internal.spine.empty());
+}
+
+REPUB_TEST(book_broken_fixtures) {
+    repub_platform_t platform = repub_platform_default();
+    repub_err_t err = REPUB_OK;
+    const char* broken[] = {"epub/broken-opf.epub", "epub/broken-truncated.epub",
+                            "epub/no-spine.epub"};
+    for (const char* name : broken) {
+        const std::string path = fixture_path(name);
+        repub_book_t* book = repub_book_open(&platform, path.c_str(), nullptr, &err);
+        if (book) {
+            /* If a broken fixture is still openable it must at least be consistent. */
+            REPUB_CHECK(repub_book_spine_count(book) > 0);
+            repub_book_close(book);
+        } else {
+            REPUB_CHECK(err != REPUB_OK);
+        }
+    }
 }
 
 /* ------------------------------------------------------------------------- */

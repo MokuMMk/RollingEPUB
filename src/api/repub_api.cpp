@@ -68,15 +68,29 @@ void repub_free(const repub_platform_t* platform, void* ptr) {
 
 void repub_layout_spec_defaults(repub_layout_spec_t* spec) {
     if (!spec) return;
+    /* The documented contract keeps page_rect untouched and keeps a caller
+     * supplied font size; every other field is filled with its default.  The
+     * internal default helper resets the whole struct, so preserve those two
+     * fields around it. */
+    const repub_rect_t page_rect = spec->page_rect;
+    const int32_t font_size_px = spec->font_size_px;
     repub::layout_spec_defaults(spec);
+    spec->page_rect = page_rect;
     spec->struct_size = static_cast<uint32_t>(sizeof(repub_layout_spec_t));
-    if (spec->font_size_px <= 0) spec->font_size_px = 22;
-    if (spec->line_height_percent <= 0) spec->line_height_percent = 160;
-    if (spec->paragraph_gap_percent <= 0) spec->paragraph_gap_percent = 60;
-    if (spec->first_line_indent_em < 0) spec->first_line_indent_em = 2;
-    spec->justify = 1;
+    spec->font_size_px = font_size_px > 0 ? font_size_px : 22;
+    spec->line_height_percent = 160;
+    spec->paragraph_gap_percent = 60;
+    spec->tracking_px = 0;
+    spec->first_line_indent_em = 2;
+    spec->margin_left_px = 0;
+    spec->margin_right_px = 0;
+    spec->margin_top_px = 0;
+    spec->margin_bottom_px = 0;
+    spec->writing_mode = REPUB_WRITING_HORIZONTAL;
     spec->images_visible = 1;
     spec->image_full_bleed = 0;
+    spec->justify = 1;
+    spec->chapter_heading_height_px = 0;
     spec->max_pages = 0;
 #if REPUB_ENABLE_HYPHENATION
     spec->hyphenation = 1;

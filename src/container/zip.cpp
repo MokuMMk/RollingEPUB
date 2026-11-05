@@ -19,13 +19,30 @@
 
 #include "core/text_util.h"
 
-/* miniz is compiled into this translation unit (see the include at the bottom
- * of the file); these switches keep it portable and free of stdio. */
+/* miniz is compiled into this single translation unit.  These switches keep it
+ * portable and free of stdio; the implementation is wrapped in pragmas because
+ * third-party C is not warning-clean under the library's -Wall -Wextra. */
 #define MINIZ_NO_STDIO
 #define MINIZ_NO_TIME
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #define MINIZ_NO_ARCHIVE_WRITING_APIS
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 #include "miniz.h"
+/* miniz.c re-defines MZ_FILE with slightly different spelling ("void *"); drop
+ * the header's spelling first so the build stays warning-free. */
+#undef MZ_FILE
+#include "../../third_party/miniz.c"
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 namespace repub {
 
@@ -328,7 +345,3 @@ repub_err_t ZipArchive::extract_prefix(size_t index, void* buffer, size_t cap,
 }
 
 }  // namespace repub
-
-/* Single miniz implementation translation unit for the library.  Included
- * after our code so the configuration macros above stay local to this file. */
-#include "../../third_party/miniz.c"

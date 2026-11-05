@@ -457,6 +457,16 @@ class ChapterParser {
                     handle_tag(tag);
                     continue;
                 }
+                if (result == ScanResult::Truncated) {
+                    /* Pathologically long tag: skip to the next '>' within a
+                     * generous bound so the following chapter content survives. */
+                    const size_t recovery_limit = std::min(src.size(), lt + 4u * 1024u * 1024u);
+                    const size_t close = src.find('>', lt + 1);
+                    if (close != std::string_view::npos && close < recovery_limit) {
+                        pos = close + 1;
+                        continue;
+                    }
+                }
                 /* Truncated / unreadable tag: keep the remaining bytes as text. */
                 emit_text(src.substr(lt), true);
                 pos = src.size();
@@ -1613,7 +1623,12 @@ class ChapterParser {
             pos = lt;
             TagToken tag;
             size_t at = pos;
-            if (scan_tag(html, at, tag) != ScanResult::Ok) break;
+            if (scan_tag(html, at, tag) != ScanResult::Ok) {
+                /* XML declaration, DOCTYPE, comment, PI or stray '<':
+                 * skip one byte and keep scanning for the target element. */
+                pos = lt + 1;
+                continue;
+            }
             if (!tag.closing && !tag.self_closing) {
                 std::string_view value;
                 bool matches = false;

@@ -415,6 +415,10 @@ class Builder {
     size_t run_cursor_ = 0;
     size_t run_end_ = 0;
     size_t block_limit_ = 0;
+
+    /* Vertical writing continuation state (persists across blocks). */
+    int v_column_ = 0;
+    int v_column_top_ = 0;
 };
 
 int Builder::scaled(int value, int px) const {
@@ -486,7 +490,8 @@ BlockStyle Builder::block_style(const FlowBlock& block) const {
     if (block.flags & FBLOCK_STRIKE) st.span_style |= REPUB_SPAN_STRIKE;
     st.centered = (block.flags & FBLOCK_CENTER) != 0;
     st.right = (block.flags & FBLOCK_RIGHT) != 0;
-    st.justify = (block.flags & FBLOCK_JUSTIFY) != 0 || (spec_.justify && !st.centered && !st.right);
+    st.justify = (block.flags & FBLOCK_JUSTIFY) != 0 ||
+                 (spec_.justify && !st.centered && !st.right && !st.heading);
     st.no_indent = (block.flags & FBLOCK_NO_INDENT) != 0;
     st.preserve = block.preserve_whitespace || (block.flags & FBLOCK_CODE) != 0;
     st.family_id = block.family_id;
@@ -504,11 +509,17 @@ BlockStyle Builder::block_style(const FlowBlock& block) const {
 #endif
     if (st.drop_cap_lines > 3) st.drop_cap_lines = 3;
     if (vertical_) st.drop_cap_lines = 0;
-    if (!st.no_indent && !st.heading && !st.centered && !st.right) {
+    if (!st.heading && !st.centered && !st.right) {
         int em = spec_.first_line_indent_em;
         if (em < 0) em = 0;
         if (em > 3) em = 3;
-        int indent = block.indent_px > 0 ? scaled(block.indent_px, st.px) : em * st.px;
+        int indent = 0;
+        if (block.indent_px > 0) {
+            /* Explicit CSS text-indent (already relative to the body size). */
+            indent = scaled(block.indent_px, st.px);
+        } else if (!st.no_indent) {
+            indent = em * st.px;
+        }
         if (indent < 0) indent = 0;
         st.first_indent = indent;
     }
@@ -539,9 +550,13 @@ CharStyle Builder::char_style(const BlockStyle& style, size_t offset, size_t lim
             bool sub = (rs & RUN_SUBSCRIPT) != 0;
             if (sup) cs.span_style |= REPUB_SPAN_SUPERSCRIPT;
             if (sub) cs.span_style |= REPUB_SPAN_SUBSCRIPT;
-            int scale = run.scale_percent > 0 ? run.scale_percent : 100;
-            if (scale > 800) scale = 800;
-            int px = (style.px * scale + 50) / 100;
+            /* Run scale is an absolute percentage of the body size (the same
+             * space as FlowBlock::font_scale_percent); 100 inherits the block
+             * size.  Applying it on top of the block scale would double-scale
+             * headings (parser stores the inherited size on the run too). */
+            int run_scale = run.scale_percent > 0 ? run.scale_percent : 100;
+            if (run_scale > 800) run_scale = 800;
+            int px = (run_scale == 100) ? style.px : (body_px_ * run_scale + 50) / 100;
             if (px < 1) px = 1;
             if (sup || sub) {
                 int delta = (px * (sup ? 30 : 25) + 50) / 100;
@@ -735,18 +750,26 @@ LineBuild Builder::build_line(size_t start, size_t limit, const BlockStyle& styl
         const int cand_width = width + cell.advance + track;
         const bool opportunity = !line.cells.empty() && break_opportunity(line.cells.back(), cell);
         if (cand_width > inner && !line.cells.empty()) {
-            int bp = opportunity ? static_cast<int>(line.cells.size()) : candidate;
+            const int old_size = static_cast<int>(line.cells.size());
+            int bp = opportunity ? old_size : candidate;
             if (bp > 0) bp = adjust_break(line, cell, bp);
             if (bp <= 0) {
                 int hy = try_hyphen_break(line, limit, inner);
-                bp = hy > 0 ? hy : static_cast<int>(line.cells.size());
+                bp = hy > 0 ? hy : old_size;
             }
-            if (bp <= 0) bp = static_cast<int>(line.cells.size());
+            if (bp <= 0) bp = old_size;
+            if (bp > old_size) bp = old_size;
+            /* Resume after the break: at the first dropped cell (hyphenated /
+             * emergency split) or at the current character when the break is
+             * exactly at the overflow point.  Never skip accumulated cells. */
+            const size_t resume =
+                (bp < old_size) ? static_cast<size_t>(line.cells[static_cast<size_t>(bp)].offset)
+                                : pos;
             line.cells.resize(static_cast<size_t>(bp));
             line.end_offset = line.cells.empty()
                                   ? pos
                                   : static_cast<size_t>(line.cells.back().offset) + line.cells.back().len;
-            line.next = line.end_offset;
+            line.next = resume;
             line.hard_end = false;
             break;
         }
@@ -789,6 +812,21 @@ LineBuild Builder::build_line(size_t start, size_t limit, const BlockStyle& styl
         line.next = line.end_offset;
     }
 
+    /* Trailing spaces are not part of a line's ink and must not affect
+     * alignment/justification or the right margin.  Drop them from the span
+     * list; the next line starts at the following non-space character. */
+    if (!line.cells.empty()) {
+        size_t ink_cells = line.cells.size();
+        while (ink_cells > 0 && (line.cells[ink_cells - 1].flags & CELL_SPACE)) --ink_cells;
+        if (ink_cells > 0 && ink_cells < line.cells.size()) {
+            line.cells.resize(ink_cells);
+            line.end_offset =
+                static_cast<size_t>(line.cells.back().offset) + line.cells.back().len;
+            /* line.next already points at the first character of the next
+             * line; the trimmed spaces simply do not get a span. */
+        }
+    }
+
     line.empty = false;
     line.width = measured_width(line.cells, static_cast<int>(line.cells.size()));
     int ascent = 0;
@@ -821,6 +859,8 @@ bool Builder::new_page(uint32_t start_offset) {
         stopped_ = true;
         return false;
     }
+    /* Close the page that was just filled before starting the next one. */
+    if (!out_.pages.empty()) finish_page();
     repub_page page;
     page.chapter = chapter_;
     page.info.start_offset = start_offset;
@@ -917,21 +957,19 @@ void Builder::emit_line(const LineBuild& line, const BlockStyle& style, bool is_
 
     const int baseline = y_ + line.ascent;
     std::vector<int> cell_x(count);
-    std::vector<int> cell_adv(count);
     {
         int cursor = content_x_ + line.indent + offset_align;
         int rem_left = rem;
         for (size_t i = 0; i < count; ++i) {
             cell_x[i] = cursor;
             int adv = line.cells[i].advance;
-            if (justify && (line.cells[i].flags & CELL_SPACE)) {
+            if (justify && i < visible_end && (line.cells[i].flags & CELL_SPACE)) {
                 adv += per_space;
                 if (rem_left > 0) {
                     ++adv;
                     --rem_left;
                 }
             }
-            cell_adv[i] = adv;
             cursor += adv;
             if (i + 1 < count) cursor += spec_.tracking_px;
         }
@@ -948,11 +986,17 @@ void Builder::emit_line(const LineBuild& line, const BlockStyle& style, bool is_
                 c.delta != first.delta)
                 break;
             if (c.offset != static_cast<uint32_t>(p.offset) + p.len) break;
+            /* Justified lines are split after each space so span.x carries the
+             * stretched gap; the renderer draws each span at span.x with the
+             * natural advances of its text. */
+            if (justify && (p.flags & CELL_SPACE)) break;
             ++j;
         }
+        /* span.width is the natural advance of the span text (tracking
+         * included), never the full line box. */
         int span_advance = 0;
         for (size_t k = i; k < j; ++k) {
-            span_advance += cell_adv[k];
+            span_advance += line.cells[k].advance;
             if (k + 1 < j) span_advance += spec_.tracking_px;
         }
         repub_span_t span{};
@@ -1100,15 +1144,20 @@ bool Builder::layout_text_block(const FlowBlock& block) {
         }
 
         bool in_cap = cap_lines_left > 0 && cap_bytes > 0;
-        LineBuild line = build_line(pos, limit, style, content_w_, first_line);
+        int cap_indent = in_cap ? std::min(content_w_ - 1, cap_w + style.px / 4)
+                                : style.first_indent;
+        if (cap_indent < 0) cap_indent = 0;
+        BlockStyle line_style = style;
+        line_style.first_indent = cap_indent;
+        LineBuild line = build_line(pos, limit, line_style, content_w_,
+                                    in_cap ? true : first_line);
         if (line.empty) {
             pos = line.next > pos ? line.next : pos + 1;
             if (line.hard_end) first_line = true;
             continue;
         }
         if (in_cap) {
-            line.indent = cap_w + style.px / 4;
-            if (line.indent >= content_w_) line.indent = content_w_ > 1 ? content_w_ - 1 : 0;
+            line.indent = cap_indent;
         }
         if (!ensure_space(first_line ? style.margin_before : 0, line.line_height,
                           static_cast<uint32_t>(line.cells.front().offset)))
@@ -1246,9 +1295,8 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
     if (run_cursor_ > run_end_) run_cursor_ = run_end_;
 
     const int columns_per_page = std::max(1, content_w_ / pitch);
-    int column = 0;
-    int column_x = content_x_ + content_w_ - pitch;
-    int column_top = page_top_ + first_page_extra_;
+    if (v_column_top_ == 0) v_column_top_ = page_top_ + first_page_extra_;
+    int column_x = content_x_ + content_w_ - (v_column_ + 1) * pitch;
     bool first_line = true;
 
     while (pos < limit && !stopped_) {
@@ -1265,8 +1313,16 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
             continue;
         }
 
+        /* Start a new page when the current one has no column left. */
+        if (v_column_ >= columns_per_page) {
+            v_column_ = 0;
+            if (!new_page(static_cast<uint32_t>(pos))) return true;
+            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
+        }
+        const int margin = first_line ? style.margin_before : 0;
         const int indent = first_line ? style.first_indent : 0;
-        const int avail = std::max(pitch, content_h_ - indent);
+        const int avail = std::max(pitch, bottom_ - (v_column_top_ + margin) - indent);
+        column_x = content_x_ + content_w_ - (v_column_ + 1) * pitch;
 
         LineBuild col;
         col.indent = indent;
@@ -1347,17 +1403,9 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
         col.width = width;
         col.line_height = width;
 
-        /* Column pacing. */
-        int top = column_top + (first_line ? style.margin_before : 0);
-        int need = width + (first_line ? style.margin_before : 0);
-        if (column >= columns_per_page || top + need > bottom_) {
-            column = 0;
-            column_x = content_x_ + content_w_ - pitch;
-            column_top = page_top_;
-            if (!new_page(static_cast<uint32_t>(col.cells.front().offset))) return true;
-            column_top = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
-            top = column_top;
-        }
+        /* Column pacing: text columns all start at the page top and advance
+         * right-to-left one pitch at a time (handled at the loop head). */
+        int top = v_column_top_ + margin;
 
         repub_page& page = current_page();
         /* Justify the column vertically by stretching spaces when enabled. */
@@ -1441,8 +1489,7 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
         }
         cover(static_cast<uint32_t>(col.end_offset));
         line_index_ = line_index_ < 0xFFFF ? line_index_ + 1 : line_index_;
-        column_top += pitch;
-        ++column;
+        ++v_column_;
         first_line = col.hard_end;
         pos = col.next;
     }
@@ -1450,15 +1497,27 @@ bool Builder::layout_vertical_block(const FlowBlock& block) {
 }
 
 bool Builder::layout_vertical() {
-    if (!new_page(0)) return false;
+    if (out_.pages.empty()) {
+        if (!new_page(0)) return false;
+    }
+    v_column_ = 0;
+    v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
     for (size_t i = 0; i < flow_.blocks.size() && !stopped_; ++i) {
         const FlowBlock& block = flow_.blocks[i];
         if (block.page_break_before && !page_empty()) {
             if (!new_page(block.offset)) break;
+            v_column_ = 0;
+            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
         }
         if (block.type == REPUB_BLOCK_IMAGE || block.image_index >= 0) {
             layout_image_block(block);
             if (stopped_) break;
+            /* Illustrations own their page in vertical setting. */
+            if (i + 1 < flow_.blocks.size() && !page_empty()) {
+                if (!new_page(flow_.blocks[i + 1].offset)) break;
+            }
+            v_column_ = 0;
+            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
             continue;
         }
         if (block.type == REPUB_BLOCK_HR) {
@@ -1471,6 +1530,8 @@ bool Builder::layout_vertical() {
         layout_vertical_block(block);
         if (block.page_break_after && i + 1 < flow_.blocks.size()) {
             if (!new_page(flow_.blocks[i + 1].offset)) break;
+            v_column_ = 0;
+            v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
         }
     }
     return true;

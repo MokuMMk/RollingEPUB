@@ -19,7 +19,7 @@
 
 namespace {
 
-const char* kMainFixture = "readpico_trail-marker.epub";
+const char* kMainFixture = "epub/readpico_trail-marker.epub";
 
 repub_open_options_t open_options() {
     repub_open_options_t options{};
@@ -111,6 +111,9 @@ REPUB_TEST(api_build_info_and_defaults) {
     repub_layout_spec_t null_spec{};
     repub_layout_spec_defaults(&null_spec);
     REPUB_CHECK_EQ(null_spec.font_size_px, 22);
+    /* NULL-safe defaults helpers. */
+    repub_layout_spec_defaults(nullptr);
+    repub_render_options_defaults(nullptr);
 
     repub_render_options_t render_options{};
     repub_render_options_defaults(&render_options);
@@ -381,8 +384,9 @@ REPUB_TEST(api_layout_create_and_pages) {
 
     /* Ad-hoc text layout. */
     repub_layout_t* text_layout = nullptr;
-    REPUB_CHECK_EQ(repub_book_layout_text(book, "Hello popup\nSecond line", 25, &spec,
-                                          &text_layout),
+    const char* popup_text = "Hello popup\nSecond line";
+    REPUB_CHECK_EQ(repub_book_layout_text(book, popup_text, std::strlen(popup_text),
+                                          &spec, &text_layout),
                    REPUB_OK);
     REPUB_CHECK(text_layout != nullptr);
     REPUB_CHECK(repub_layout_page_count(text_layout) > 0);
@@ -486,6 +490,20 @@ REPUB_TEST(api_reader_render_and_navigate) {
     repub_reader_close(reader);
     repub_reader_close(nullptr);
 
+    /* repub_reader_attach takes ownership of an already opened book. */
+    err = REPUB_OK;
+    repub_book_t* attach_book = repub_book_open(nullptr, path.c_str(), nullptr, &err);
+    REPUB_CHECK(attach_book != nullptr);
+    repub_reader_t* attached = repub_reader_attach(attach_book, &spec, &err);
+    REPUB_CHECK(attached != nullptr);
+    REPUB_CHECK_EQ(err, REPUB_OK);
+    REPUB_CHECK(repub_reader_book(attached) == attach_book);
+    REPUB_CHECK(repub_reader_page_count(attached) > 0);
+    repub_reader_close(attached);
+    err = REPUB_OK;
+    REPUB_CHECK(repub_reader_attach(nullptr, &spec, &err) == nullptr);
+    REPUB_CHECK_EQ(err, REPUB_ERR_INVALID_ARG);
+
     /* Invalid open path fails cleanly. */
     err = REPUB_OK;
     repub_reader_t* bad = repub_reader_open(nullptr, "no/such/book.epub", &spec,
@@ -511,17 +529,17 @@ REPUB_TEST(api_note_popup) {
     for (size_t i = 0; i < spine_count && i < 40; ++i) {
         repub_chapter_t* chapter = nullptr;
         if (repub_book_chapter_open(book, i, &chapter) != REPUB_OK) continue;
-        if (repub_chapter_note_count(chapter) > 0) {
-            note_chapter = i;
-            note_index_in_chapter = 0;
-            const repub_note_info_t* note = repub_chapter_note(chapter, 0);
-            REPUB_CHECK(note != nullptr);
-            if (note->text != nullptr && note->text_len > 0) {
-                repub_chapter_free(chapter);
-                break;
+        bool found = false;
+        for (size_t n = 0; n < repub_chapter_note_count(chapter) && !found; ++n) {
+            const repub_note_info_t* note = repub_chapter_note(chapter, n);
+            if (note && note->text != nullptr && note->text_len > 0) {
+                note_chapter = i;
+                note_index_in_chapter = n;
+                found = true;
             }
         }
         repub_chapter_free(chapter);
+        if (found) break;
     }
     repub_book_close(book);
     if (note_chapter == static_cast<size_t>(-1)) return; /* fixture has no notes */
@@ -590,7 +608,7 @@ REPUB_TEST(api_note_popup) {
 /* ------------------------------------------------------------------------- */
 
 REPUB_TEST(api_image_viewer) {
-    const std::string path = fixture_path("test_png_images.epub");
+    const std::string path = fixture_path("epub/test_png_images.epub");
     repub_err_t err = REPUB_OK;
     repub_book_t* book = repub_book_open(nullptr, path.c_str(), nullptr, &err);
     if (!book) return; /* fixture optional */

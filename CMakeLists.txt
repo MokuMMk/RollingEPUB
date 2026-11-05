@@ -142,7 +142,10 @@ endif()
 if(REPUB_BUILD_TESTS)
     enable_testing()
     add_library(repub_test_support STATIC tests/test_harness.cpp)
-    target_include_directories(repub_test_support PUBLIC tests)
+    target_include_directories(repub_test_support PUBLIC
+        tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
     target_link_libraries(repub_test_support PUBLIC rolling_epub)
     target_compile_features(repub_test_support PUBLIC cxx_std_17)
     target_compile_definitions(repub_test_support PUBLIC

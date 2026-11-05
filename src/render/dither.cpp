@@ -1,4 +1,4 @@
-/*
+﻿/*
  * RollingEPUB dithering: threshold, ordered Bayer 4x4 / 8x8 and
  * Floyd-Steinberg error diffusion into MONO1 / GRAY2 / GRAY4 / GRAY8 canvases.
  *
@@ -172,15 +172,30 @@ void dither_canvas_rect(repub_canvas* canvas, const Rect& dest, const uint8_t* g
             const int bayer = bayer_offset(mode, col, row);
             int add;
             if (bayer >= 0) {
-                add = clamp_int(bayer + (threshold - 128), 0, 254);
+                add = clamp_int(bayer + (128 - threshold), 0, 254);
             } else {
-                add = (canvas->format == REPUB_FORMAT_MONO1) ? (threshold - 1)
+                add = (canvas->format == REPUB_FORMAT_MONO1) ? (255 - threshold)
                                                              : (canvas->max_level / 2);
             }
             const int level = quantize_level(canvas->format, canvas->max_level, src[src_x], add);
             canvas->set_pixel(col, row, level);
         }
     }
+}
+
+int dither_quantize_gray(int gray, repub_pixel_format_t format, int max_level, int x, int y,
+                         repub_dither_t mode, int threshold) {
+    if (threshold <= 0) threshold = 128;
+    if (threshold > 255) threshold = 255;
+    if (max_level <= 0) max_level = format_max_level(format);
+    int add;
+    const int bayer = bayer_offset(mode, x, y);
+    if (bayer >= 0) {
+        add = clamp_int(bayer + (128 - threshold), 0, 254);
+    } else {
+        add = (format == REPUB_FORMAT_MONO1) ? (255 - threshold) : (max_level / 2);
+    }
+    return quantize_level(format, max_level, gray, add);
 }
 
 }  // namespace repub

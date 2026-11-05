@@ -35,7 +35,6 @@ CONTAINER = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 CSS = """
-@font-face { font-family: "BookSerif"; src: url("../fonts/book.ttf"); font-weight: normal; }
 html, body { margin: 0; padding: 0; }
 body { font-family: serif; font-size: 100%; line-height: 160%; }
 p { margin-top: 0; margin-bottom: 0.6em; text-indent: 2em; text-align: justify; }

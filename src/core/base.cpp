@@ -8,6 +8,10 @@
 
 #include <cstdlib>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 namespace repub {
 
 namespace {
@@ -19,7 +23,20 @@ void default_free(void*, void* ptr) { std::free(ptr); }
 repub_err_t default_file_open(void* ctx, const char* path, repub_file_t** out) {
     (void)ctx;
     if (!path || !out) return REPUB_ERR_INVALID_ARG;
+#if defined(_WIN32)
+    /* Paths passed to the library are UTF-8 (EPUB/OPF convention).  The ANSI
+     * CRT cannot open non-ASCII names on every Windows locale, so convert to
+     * UTF-16 and use _wfopen. */
+    const int needed = MultiByteToWideChar(CP_UTF8, 0, path, -1, nullptr, 0);
+    if (needed <= 0) return REPUB_ERR_IO;
+    wchar_t* wide = static_cast<wchar_t*>(std::malloc(sizeof(wchar_t) * static_cast<size_t>(needed)));
+    if (!wide) return REPUB_ERR_MEMORY;
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, wide, needed);
+    FILE* file = _wfopen(wide, L"rb");
+    std::free(wide);
+#else
     FILE* file = std::fopen(path, "rb");
+#endif
     if (!file) return REPUB_ERR_IO;
     *out = reinterpret_cast<repub_file_t*>(file);
     return REPUB_OK;
@@ -183,30 +200,6 @@ const repub_build_info_t kBuildInfo = {
 
 }  // namespace
 
-const repub_build_info_t* repub_build_info(void) { return &kBuildInfo; }
-
-int repub_feature_enabled(uint32_t feature_bit) {
-    return (kBuildInfo.features & feature_bit) ? 1 : 0;
-}
-
-repub_platform_t repub_platform_default(void) {
-    repub_platform_t platform{};
-    platform.ctx = nullptr;
-    platform.allocator.ctx = nullptr;
-    platform.allocator.alloc = default_alloc;
-    platform.allocator.realloc = default_realloc;
-    platform.allocator.free = default_free;
-    platform.file_open = default_file_open;
-    platform.file_read = default_file_read;
-    platform.file_seek = default_file_seek;
-    platform.file_tell = default_file_tell;
-    platform.file_size = default_file_size;
-    platform.file_close = default_file_close;
-    platform.log = default_log;
-    platform.ticks_ms = default_ticks_ms;
-    return platform;
-}
-
 void log_message(const repub_platform_t* platform, int level, const char* message) {
     if (platform && platform->log) {
         platform->log(platform->ctx, level, message);
@@ -253,3 +246,29 @@ const repub_platform_t* effective_platform(const repub_platform_t* platform) {
 }
 
 }  // namespace repub
+
+/* Public C API definitions at global scope (the header declares them
+ * extern "C" at global scope). */
+const repub_build_info_t* repub_build_info(void) { return &repub::kBuildInfo; }
+
+int repub_feature_enabled(uint32_t feature_bit) {
+    return (repub::kBuildInfo.features & feature_bit) ? 1 : 0;
+}
+
+repub_platform_t repub_platform_default(void) {
+    repub_platform_t platform{};
+    platform.ctx = nullptr;
+    platform.allocator.ctx = nullptr;
+    platform.allocator.alloc = repub::default_alloc;
+    platform.allocator.realloc = repub::default_realloc;
+    platform.allocator.free = repub::default_free;
+    platform.file_open = repub::default_file_open;
+    platform.file_read = repub::default_file_read;
+    platform.file_seek = repub::default_file_seek;
+    platform.file_tell = repub::default_file_tell;
+    platform.file_size = repub::default_file_size;
+    platform.file_close = repub::default_file_close;
+    platform.log = repub::default_log;
+    platform.ticks_ms = repub::default_ticks_ms;
+    return platform;
+}
