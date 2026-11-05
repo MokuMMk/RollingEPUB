@@ -2,6 +2,7 @@
 
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
 [![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://www.arduino.cc/)
+[![ESP Component Registry](https://components.espressif.com/components/mokummk/rolling_epub/badge.svg)](https://components.espressif.com/components/mokummk/rolling_epub)
 
 **一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 [CrossMux](https://github.com/0x1abin/crossmux)
 与 [Read Pico](https://github.com/wegooo-cell/read-pico-reader) 两个阅读器里的 EPUB 能力
@@ -191,7 +192,21 @@ ESP-IDF 的 `idf_component.yml`/`Kconfig` 覆盖。
 
 ## ESP-IDF 集成
 
-把本仓库作为组件放入工程：
+从 ESP Component Registry 安装：
+
+```bash
+idf.py add-dependency "mokummk/rolling_epub^1.0.0"
+```
+
+或在 `idf_component.yml` 中声明：
+
+```yaml
+dependencies:
+  mokummk/rolling_epub:
+    version: "^1.0.0"
+```
+
+本地开发仍可把仓库作为组件放入工程：
 
 ```yaml
 # idf_component.yml
