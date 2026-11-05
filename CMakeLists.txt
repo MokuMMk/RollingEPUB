@@ -126,6 +126,7 @@ if(REPUB_BUILD_TESTS)
         REPUB_TEST_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures")
 
     file(GLOB REPUB_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_*.cpp")
+    list(REMOVE_ITEM REPUB_TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_harness.cpp")
     foreach(test_src ${REPUB_TEST_SOURCES})
         get_filename_component(test_name ${test_src} NAME_WE)
         add_executable(${test_name} ${test_src})

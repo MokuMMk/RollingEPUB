@@ -63,7 +63,6 @@ int64_t default_file_tell(void* ctx, repub_file_t* file) {
 int64_t default_file_size(void* ctx, repub_file_t* file) {
     (void)ctx;
     if (!file) return -1;
-    FILE* f = reinterpret_cast<FILE*>(file);
     int64_t pos = default_file_tell(ctx, file);
     if (pos < 0) return -1;
     if (default_file_seek(ctx, file, 0, 2) != 0) return -1;

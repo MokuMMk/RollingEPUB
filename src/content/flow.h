@@ -71,6 +71,7 @@ struct FlowBlock {
     int32_t link_index = -1;
     uint16_t run_first = 0;
     uint16_t run_count = 0;
+    uint8_t drop_cap_lines = 0; /* initial-letter line count, 0 = none */
     bool preserve_whitespace = false;
 };
 
