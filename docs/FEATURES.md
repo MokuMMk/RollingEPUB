@@ -188,15 +188,14 @@ Verified on the host (Windows/MinGW g++ 16, C++17):
 | Image decode/scale/probe/draw | 14 | pass |
 | Canvas/font/page render | 15 | pass |
 | Public API, reader, popup, viewer, facade | 10 | pass |
-| wowaka themed fixture (all formats + vertical + bilinear) | 7 | pass |
 | Rolling Girl themed fixture (song profile, records, artwork, vertical) | 7 | pass |
-| **Total** | **135** | **10/10 suites pass** |
+| **Total** | **128** | **9/9 suites pass** |
 
 Additional verification:
 - release build with `-Werror`: clean.
 - reduced builds compile: no-TTF, no-images, and a "text-only" configuration
   with CSS/vertical/hyphenation/images/TOC/progress all disabled.
-- 19 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
+- 18 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
   and empty-spine inputs return errors without crashing.
 - CLI end-to-end: `info`, `toc`, `text`, `blocks`, `notes`, `pages`, `render`
   (PNG/PGM/PPM), `image`, `cover`, `selftest`.

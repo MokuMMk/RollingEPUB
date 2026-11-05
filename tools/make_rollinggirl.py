@@ -25,7 +25,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS = ROOT / "tools" / "assets" / "wowaka"
+ASSETS = ROOT / "tools" / "assets" / "rollinggirl"
 OUT = ROOT / "tests" / "fixtures" / "epub" / "rollinggirl.epub"
 
 CONTAINER = """<?xml version="1.0" encoding="UTF-8"?>

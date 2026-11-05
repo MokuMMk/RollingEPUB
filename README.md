@@ -27,24 +27,9 @@
 | **脚注弹窗** | **图片缩放查看器** |
 | ![Footnote popup](docs/images/footnote-popup.png) | ![Image zoom](docs/images/image-zoom.png) |
 
-专题介绍书 `tests/fixtures/epub/wowaka.epub`（主题：wowaka / hitorie，9 章，包含全部支持格式）：
-
-| 封面 | 竖排（从右到左） |
-| --- | --- |
-| ![Cover](docs/images/wowaka-cover.png) | ![Vertical writing](docs/images/wowaka-vertical.png) |
-| **图文混排（虚拟歌手演唱会）** | **图片独占页（竖长舞台照）** |
-| ![Mixed text and image](docs/images/wowaka-gallery-0.png) | ![Image-only page](docs/images/wowaka-gallery-5.png) |
-| **表格 / 代码 / 引用 / 上下标** | **jpg / png / gif / bmp 混排** |
-| ![Rich content page](docs/images/wowaka-life-p2.png) | ![Formats](docs/images/wowaka-gallery-1.png) |
-
-以上图片由本仓库的 `repub_cli` 在测试 EPUB 上直接渲染得到。`latin/cjk` 截图使用
-仓库自带的 `tests/fixtures/fonts/noto-subset.ttf`（子集未覆盖的字显示为方框，
-属于字体覆盖而非排版问题）；`wowaka` 截图使用本机完整 CJK 字体渲染，字体文件不随
-仓库分发。专题书可用 `python tools/make_wowaka.py` 重新生成。
-
-另一本单曲介绍书 `tests/fixtures/epub/rollinggirl.epub`（10 章），内容为
-wowaka 的《ローリンガール》：歌曲档案、2010 年背景、主题、画面、记录、收录、
-影像、竖排与资料来源，事实参考中文维基百科与萌娘百科，正文不含歌词。
+单曲介绍书 `tests/fixtures/epub/rollinggirl.epub`（10 章），内容为 wowaka 的
+《ローリンガール》：歌曲档案、2010 年背景、主题、画面、记录、收录、影像、竖排与
+资料来源，事实参考中文维基百科与萌娘百科，正文不含歌词。
 
 | 《ローリンガール》封面 | 歌曲档案 |
 | --- | --- |
@@ -52,20 +37,24 @@ wowaka 的《ローリンガール》：歌曲档案、2010 年背景、主题�
 | **插画与画面** | **竖排** |
 | ![Artwork](docs/images/rollinggirl-pv.png) | ![Rolling Girl vertical](docs/images/rollinggirl-vertical.png) |
 
+以上图片由本仓库的 `repub_cli` 在测试 EPUB 上直接渲染得到。`latin/cjk` 截图使用
+仓库自带的 `tests/fixtures/fonts/noto-subset.ttf`（子集未覆盖的字显示为方框，
+属于字体覆盖而非排版问题）；`rollinggirl` 截图使用本机完整 CJK 字体渲染，字体文件
+不随仓库分发；样张可用 `python tools/make_rollinggirl.py` 重新生成。
+
 ## 状态 / Status
 
 - 容器（ZIP/OPF/NCX/NAV）、HTML/CSS、分页（中/英/竖排）、渲染（1/2/4/8bpp、
   TTF、图片、抖动）、C API、C++ facade、CLI 均已实现。
-- 主机测试：**10 个测试套件全部通过**（容器 15、CSS 21、Flow 16、排版 24、
-  连字 6、图片 14、渲染 15、API 10、wowaka 专题 7、Rolling Girl 专题 7，
-  共 **135** 个用例）。
+- 主机测试：**9 个测试套件全部通过**（容器 15、CSS 21、Flow 16、排版 24、
+  连字 6、图片 14、渲染 15、API 10、Rolling Girl 专题 7，共 **128** 个用例）。
 - 图片重采样：`image_scale` / `canvas_draw_image` / 缩放查看器均为**双线性**
   （放大与缩小都做插值；与 Read Pico 的看片缩放口径一致，Read Pico 缩小另用
   area 平均以保留细线，RollingEPUB 当前统一为双线性）。
 - 图文混排：块级插图与正文按阅读顺序分页，支持文图同页、图片独占页、
   通栏插图与行内脚注图标；与 Read Pico 一样不实现 CSS `float` 文字环绕。
 - 已验证的缩减构建：无 TTF、无图片、纯文本最小配置均可编译。
-- 真实书籍样张：仓库内 19 个 EPUB（两项目测试书 + 自动生成书）全部可打开。
+- 真实书籍样张：仓库内 18 个 EPUB（两项目测试书 + 自动生成书）全部可打开。
 - 已知限制见下文「已知限制」。
 
 ## 目录 / Layout

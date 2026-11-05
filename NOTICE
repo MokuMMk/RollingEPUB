@@ -90,24 +90,19 @@ Apache-2.0 per the repository LICENSE scope) are reused.
   These are test-only artifacts, not part of the shipped library.
 
 -------------------------------------------------------------------------------
-5. LOCAL-ONLY wowaka book assets (NOT part of the MIT-licensed library)
+5. LOCAL-ONLY Rolling Girl book assets (NOT part of the MIT-licensed library)
 -------------------------------------------------------------------------------
-The personal commemorative book `tests/fixtures/epub/wowaka.epub`, the song
-book `tests/fixtures/epub/rollinggirl.epub`, and the source assets in
-`tools/assets/wowaka/` and `tools/assets/rollinggirl/` are intended for LOCAL,
-PERSONAL reading only. They are not covered by the MIT license of RollingEPUB
-and must not be redistributed publicly.
+The song book `tests/fixtures/epub/rollinggirl.epub` and the source assets in
+`tools/assets/rollinggirl/` are intended for LOCAL, PERSONAL reading only.
+They are not covered by the MIT license of RollingEPUB and must not be
+redistributed publicly.
 
-  * wowaka street portrait, the "Rollingirl" artwork, and the
-    "Unknown Mother-Goose" / "Vocaloid worlds end dancehall" artwork: sourced
-    from Moegirl Commons; copyright remains with the original rights holders
-    and they are used here only for personal, non-commercial reading.
-  * The remaining scene photographs (Hatsune Miku concert, live stage,
-    electric guitar, Tokyo at night) are CC BY / CC BY-SA from Wikimedia
-    Commons; the hitorie logo is public domain. Author and license details
-    are listed in `tools/assets/wowaka/CREDITS.md`.
-  * Text is original commemorative prose based on public biographical facts;
-    it contains no lyrics and is not an official publication.
+  * The "Rollingirl" artwork and the wowaka street portrait are sourced from
+    Moegirl Commons; copyright remains with the original rights holders and
+    they are used here only for personal, non-commercial reading. Author and
+    license details are listed in `tools/assets/rollinggirl/CREDITS.md`.
+  * Text is original commentary based on public sources; it contains no lyrics
+    and is not an official publication.
 
 Do not upload this book or its source images to public file hosts, app stores
 or any commercial distribution channel.
