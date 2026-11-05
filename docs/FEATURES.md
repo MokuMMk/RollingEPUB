@@ -173,3 +173,53 @@ Hard limits (override per device): `REPUB_MAX_SPINE_ITEMS` 8192,
 `REPUB_MAX_ZIP_ENTRIES` 16384, `REPUB_MAX_CHAPTER_BYTES` 8 MiB,
 `REPUB_MAX_BLOCKS` 65536, `REPUB_MAX_PAGES` 16384,
 `REPUB_MAX_IMAGE_BYTES` 16 MiB, `REPUB_MAX_IMAGE_PIXELS` 16 MP.
+
+## Implementation status (v1.0)
+
+Verified on the host (Windows/MinGW g++ 16, C++17):
+
+| Suite | Tests | Status |
+| --- | --- | --- |
+| Container (ZIP/XML/OPF/NAV/NCX/resources/errors) | 15 | pass |
+| CSS cascade | 21 | pass |
+| HTML → Flow | 16 | pass |
+| Layout (horizontal/CJK/vertical/notes/images) | 24 | pass |
+| Hyphenation (English Liang) | 6 | pass |
+| Image decode/scale/probe/draw | 14 | pass |
+| Canvas/font/page render | 15 | pass |
+| Public API, reader, popup, viewer, facade | 10 | pass |
+| **Total** | **121** | **8/8 suites pass** |
+
+Additional verification:
+- release build with `-Werror`: clean.
+- reduced builds compile: no-TTF, no-images, and a "text-only" configuration
+  with CSS/vertical/hyphenation/images/TOC/progress all disabled.
+- 29 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
+  and empty-spine inputs return errors without crashing.
+- CLI end-to-end: `info`, `toc`, `text`, `blocks`, `notes`, `pages`, `render`
+  (PNG/PGM/PPM), `image`, `cover`, `selftest`.
+- Visual checks (docs/images): Latin and CJK pages, footnote popup, 2× image
+  zoom viewer.
+
+### Known gaps (v1)
+
+1. No visible hyphen glyph for automatic hyphenation (text stays contiguous, no
+   bytes are lost). Needs a synthetic-glyph extension to the page display list.
+2. Ruby annotations: base text is kept, `<rt>` is dropped.
+3. Tables flatten to row text (two spaces between cells); no grid borders.
+4. Block-level left/right CSS margins are only represented for blockquotes
+   (fixed 2em inset); `margin-left/right` on other blocks is not stored in the
+   flow model.
+5. Pagination caches are in-memory only; no resumable/incremental pagination
+   for very large chapters and no on-disk page cache.
+6. Vertical writing: illustrations take a page of their own; paragraph gaps are
+   not applied between vertical blocks.
+7. DRM is detected, never bypassed.
+8. Fixed-layout EPUB, MathML, SVG rendering, scripts, network resources, media
+   overlays and reader UI are out of scope.
+9. `layout_spec` zero values mean "library default"; an explicit "off" for
+   hyphenation/justify needs the compile-time flags or a future explicit-enable
+   field.
+10. Popup/viewer objects borrow reader state and must be freed before closing
+    the reader.
+

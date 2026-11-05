@@ -159,10 +159,14 @@ g++ -std=c++17 -Iinclude -Isrc -Ithird_party -c src/content/css.cpp -o build/css
 
 ## Milestones
 
-1. M1 — scaffold + contracts + build (Lead).
-2. M2 — container/book opens the fixtures, metadata/TOC/resources verified.
-3. M3 — content parses chapters (text/blocks/notes/images/anchors).
-4. M4 — layout paginates and maps offsets for real books.
-5. M5 — render draws pages; images decode; dithering works.
-6. M6 — C API/reader/popup/zoom wired; CLI renders a book end to end.
-7. M7 — tests green, feature flags build in reduced configurations, docs/packaging.
+1. M1 — scaffold + contracts + build (Lead). **Done.**
+2. M2 — container/book opens the fixtures, metadata/TOC/resources verified. **Done (15 tests).**
+3. M3 — content parses chapters (text/blocks/notes/images/anchors). **Done (16 tests).**
+4. M4 — layout paginates and maps offsets for real books. **Done (30 tests incl. hyphenation).**
+5. M5 — render draws pages; images decode; dithering works. **Done (29 tests).**
+6. M6 — C API/reader/popup/zoom wired; CLI renders a book end to end. **Done (10 tests + CLI smoke).**
+7. M7 — tests green, feature flags build in reduced configurations, docs/packaging. **Done.**
+
+Post-v1 candidates (documented gaps): synthetic hyphen glyph in the page display
+list, flow-level `margin_left/right`, ruby `<rt>` rendering, on-disk pagination
+cache, incremental pagination for giant chapters, richer table layout.

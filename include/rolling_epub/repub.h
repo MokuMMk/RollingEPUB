@@ -1,4 +1,4 @@
-/*
+﻿/*
  * RollingEPUB - portable EPUB parsing, layout and rendering library.
  *
  * SPDX-License-Identifier: MIT
@@ -205,6 +205,7 @@ typedef struct repub_font_desc {
 /* ------------------------------------------------------------------------- */
 
 typedef struct repub_book repub_book_t;
+typedef struct repub_image repub_image_t; /* defined below */
 
 typedef struct repub_open_options {
     uint32_t struct_size; /* sizeof(repub_open_options_t) */
@@ -271,7 +272,7 @@ repub_err_t repub_book_resolve_href(const repub_book_t *book, const char *href,
                                     size_t anchor_cap);
 /* Cover: href in the package, and decoded image (caller frees). */
 const char *repub_book_cover_href(const repub_book_t *book);
-repub_err_t repub_book_cover_image(const repub_book_t *book, struct repub_image **out);
+repub_err_t repub_book_cover_image(const repub_book_t *book, repub_image_t **out);
 
 /* Raw resource access (CSS, fonts, images, ...) relative to the OPF. */
 repub_err_t repub_book_read_resource(const repub_book_t *book, const char *href,
@@ -284,7 +285,7 @@ repub_err_t repub_book_image_dims(const repub_book_t *book, const char *href,
 /* Decode a book image. Same as read_resource + repub_image_decode. */
 repub_err_t repub_book_image_decode(const repub_book_t *book, const char *href,
                                     int32_t max_width, int32_t max_height,
-                                    struct repub_image **out);
+                                    repub_image_t **out);
 
 /* Fonts. data is copied. Returns REPUB_OK when the face was added. */
 repub_err_t repub_book_add_font(repub_book_t *book, const repub_font_desc_t *desc);
@@ -546,7 +547,6 @@ void repub_canvas_set_pixel(repub_canvas_t *canvas, int32_t x, int32_t y,
 /* Images                                                                    */
 /* ------------------------------------------------------------------------- */
 
-typedef struct repub_image repub_image_t;
 
 /* Decode PNG/JPEG/GIF/BMP (WebP when enabled). max_width/height 0 = no bound. */
 repub_err_t repub_image_decode(const repub_platform_t *platform,
@@ -722,3 +722,4 @@ repub_err_t repub_image_viewer_render(repub_image_viewer_t *viewer,
 #endif
 
 #endif /* ROLLING_EPUB_REPUB_H */
+

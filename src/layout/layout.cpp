@@ -298,6 +298,8 @@ struct BlockStyle {
     int margin_before = 0;
     int margin_after = 0;
     int first_indent = 0;
+    int inset_left = 0;  /* block-level left/right content inset (blockquote) */
+    int inset_right = 0;
     int16_t family_id = -1;
     int32_t link_index = -1;
     bool is_link = false;
@@ -498,6 +500,16 @@ BlockStyle Builder::block_style(const FlowBlock& block) const {
     st.margin_before = scaled(block.margin_before_px, st.px);
     st.margin_after = scaled(block.margin_after_px, st.px);
     if (st.heading && st.margin_before == 0) st.margin_before = st.px / 2;
+    /* Blockquote insets: FlowBlock currently has no CSS margin-left/right
+     * fields, so use a modest 2em default on both sides (see FlowBlock
+     * contract note in the report). */
+    if (block.type == REPUB_BLOCK_BLOCKQUOTE) {
+        st.inset_left = 2 * st.px;
+        st.inset_right = 2 * st.px;
+        if (st.inset_left + st.inset_right >= content_w_) {
+            st.inset_left = st.inset_right = content_w_ / 4;
+        }
+    }
     st.link_index = block.link_index;
     st.is_link = (block.flags & FBLOCK_LINK) != 0 && block.link_index >= 0 &&
                  static_cast<size_t>(block.link_index) < flow_.links.size();
@@ -920,7 +932,8 @@ void Builder::emit_line(const LineBuild& line, const BlockStyle& style, bool is_
     if (!ensure_space(0, line.line_height, static_cast<uint32_t>(line.cells.front().offset))) return;
 
     repub_page& page = current_page();
-    const int avail = content_w_ - line.indent;
+    const int block_avail = content_w_ - style.inset_left - style.inset_right;
+    const int avail = std::max(1, block_avail - line.indent);
     const size_t count = line.cells.size();
 
     size_t visible_end = count;
@@ -958,7 +971,7 @@ void Builder::emit_line(const LineBuild& line, const BlockStyle& style, bool is_
     const int baseline = y_ + line.ascent;
     std::vector<int> cell_x(count);
     {
-        int cursor = content_x_ + line.indent + offset_align;
+        int cursor = content_x_ + style.inset_left + line.indent + offset_align;
         int rem_left = rem;
         for (size_t i = 0; i < count; ++i) {
             cell_x[i] = cursor;
@@ -1052,6 +1065,9 @@ bool Builder::layout_text_block(const FlowBlock& block) {
 
     BlockStyle style = block_style(block);
     style.face = resolve_face(style.family_id, style.span_style);
+    /* Usable text width after block-level insets (blockquotes). */
+    const int text_w = std::max(1, content_w_ - style.inset_left - style.inset_right);
+    if (style.first_indent >= text_w) style.first_indent = text_w > 1 ? text_w - 1 : 0;
 
     run_cursor_ = block.run_first;
     block_limit_ = limit;
@@ -1086,7 +1102,7 @@ bool Builder::layout_text_block(const FlowBlock& block) {
             cap_px = std::min(0xFFFF, cap_lines * style.px);
             cap_w = fonts_.text_width(style.face, cap_px, cap_text);
             if (cap_w <= 0) cap_w = cap_px;
-            int max_w = content_w_ * 3 / 5;
+            int max_w = text_w * 3 / 5;
             if (cap_w > max_w && max_w > 0) {
                 cap_px = std::max(1, cap_px * max_w / cap_w);
                 cap_w = fonts_.text_width(style.face, cap_px, cap_text);
@@ -1121,7 +1137,7 @@ bool Builder::layout_text_block(const FlowBlock& block) {
             repub_span_t span{};
             span.text_offset = static_cast<uint32_t>(pos);
             span.text_len = static_cast<uint32_t>(cap_bytes);
-            span.x = content_x_;
+            span.x = content_x_ + style.inset_left;
             span.y = y_ + cap_asc;
             span.width = cap_w;
             span.height = cap_h;
@@ -1144,12 +1160,12 @@ bool Builder::layout_text_block(const FlowBlock& block) {
         }
 
         bool in_cap = cap_lines_left > 0 && cap_bytes > 0;
-        int cap_indent = in_cap ? std::min(content_w_ - 1, cap_w + style.px / 4)
+        int cap_indent = in_cap ? std::min(text_w - 1, cap_w + style.px / 4)
                                 : style.first_indent;
         if (cap_indent < 0) cap_indent = 0;
         BlockStyle line_style = style;
         line_style.first_indent = cap_indent;
-        LineBuild line = build_line(pos, limit, line_style, content_w_,
+        LineBuild line = build_line(pos, limit, line_style, text_w,
                                     in_cap ? true : first_line);
         if (line.empty) {
             pos = line.next > pos ? line.next : pos + 1;

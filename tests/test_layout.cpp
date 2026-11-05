@@ -898,3 +898,20 @@ REPUB_TEST(layout_hyphen_prefix_contiguity) {
         }
     }
 }
+REPUB_TEST(layout_blockquote_inset) {
+    Builder builder;
+    builder.add_block("A quotation sits in a block indented on both sides and set in italic.");
+    builder.flow.blocks[0].type = REPUB_BLOCK_BLOCKQUOTE;
+    builder.flow.blocks[0].flags = 0;
+    auto spec = make_spec();
+    spec.justify = 0;
+    auto layout = build(builder.chapter, spec);
+    REPUB_CHECK_EQ(layout.pages.size(), 1u);
+    const repub::repub_page& page = layout.pages[0];
+    REPUB_CHECK(page.spans.size() >= 1u);
+    const int inset = 32; /* 2em at 16 px */
+    for (const repub_span_t& span : page.spans) {
+        REPUB_CHECK(span.x >= content_left(spec) + inset);
+        REPUB_CHECK(span.x + span.width <= content_right(spec) - inset + spec.tracking_px + 1);
+    }
+}

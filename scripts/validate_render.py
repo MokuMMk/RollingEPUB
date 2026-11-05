@@ -16,7 +16,7 @@ def main(out_dir: str) -> int:
     for path in paths:
         im = Image.open(path).convert("L")
         lo, hi = im.getextrema()
-        dark = sum(1 for p in im.getdata() if p < 128)
+        dark = sum(im.histogram()[:128])
         name = os.path.basename(path)
         print(f"{name:28s} {im.size[0]}x{im.size[1]} range={lo}..{hi} dark_px={dark}")
         if not (name.startswith("cover") or name.startswith("image")):

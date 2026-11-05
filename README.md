@@ -19,6 +19,28 @@
 > images and renders pages into the caller's framebuffer. Footnote popups, image
 > zoom viewers, TOC, cover and byte-accurate progress are built in.
 
+## 渲染效果 / Screenshots
+
+| 拉丁文排版 | 中文排版 |
+| --- | --- |
+| ![Latin page](docs/images/latin-page.png) | ![CJK page](docs/images/cjk-page.png) |
+| **脚注弹窗** | **图片缩放查看器** |
+| ![Footnote popup](docs/images/footnote-popup.png) | ![Image zoom](docs/images/image-zoom.png) |
+
+以上图片由本仓库的 `repub_cli` / `examples/popup_and_zoom.c` 在
+`tests/fixtures/epub/*.epub` 上直接渲染得到（字体：`tests/fixtures/fonts/noto-subset.ttf`；
+示例书中的方框是测试字体子集未覆盖的汉字，不是排版缺失）。
+
+## 状态 / Status
+
+- 容器（ZIP/OPF/NCX/NAV）、HTML/CSS、分页（中/英/竖排）、渲染（1/2/4/8bpp、
+  TTF、图片、抖动）、C API、C++ facade、CLI 均已实现。
+- 主机测试：**8 个测试套件全部通过**（容器 15、CSS 21、Flow 16、排版 24、
+  连字 6、图片 14、渲染 15、API 10，共 121 个用例）。
+- 已验证的缩减构建：无 TTF、无图片、纯文本最小配置均可编译。
+- 真实书籍样张：仓库内 29 个 EPUB（两项目测试书 + 自动生成书）全部可打开。
+- 已知限制见下文「已知限制」。
+
 ## 目录 / Layout
 
 ```
@@ -209,6 +231,27 @@ Arduino 侧可使用 C API，或 `rolling_epub.hpp`（需要 C++17）。
 - [`docs/API.md`](docs/API.md) — API 指南（生命周期、坐标、内存、错误处理）
 - [`docs/PORTING.md`](docs/PORTING.md) — 从 CrossSIGO / Read Pico 迁移
 - [`docs/LICENSING.md`](docs/LICENSING.md) — 许可证与来源声明
+
+## 已知限制 / Known limitations (v1)
+
+1. **可见连字符**：英文自动断词保持原文连续（不丢字），但不会额外绘制 `-`
+   字形；需要时可扩展 page display list（当前 `repub_span_t` 只引用章节原文）。
+2. **ruby**：保留基字、丢弃 `<rt>` 注音（需要注音渲染时可后续加字段）。
+3. **表格**：按行展开为文本（单元格用两个空格分隔），不绘制网格线。
+4. **段落左右外边距**：`FlowBlock` 目前只有 before/after/indent；blockquote 使用
+   2em 默认内缩，其他块级元素的 `margin-left/right` 不能精确表达。
+5. **分页缓存**：仅内存缓存，不写磁盘；超大章节一次性分页（无增量/断点续排）。
+6. **竖排**：图片独占一页；段后距在竖排中未应用；个别标点旋转依赖字体。
+7. **DRM**：只识别 `META-INF/encryption.xml` 与加密 ZIP 条目并返回
+   `REPUB_ERR_PROTECTED`，不提供解密。
+8. **固定版式 / MathML / SVG / 脚本 / 网络资源**：不支持（见 FEATURES.md）。
+9. **Windows 路径**：默认平台用 UTF-8 → UTF-16 打开文件，支持中文书名路径；
+   自定义平台回调需自行处理编码。
+10. **生命周期**：`repub_note_popup_t` / `repub_image_viewer_t` 持有 reader 内部
+    指针，必须先释放它们再 `repub_reader_close`。
+11. **零值语义**：`layout_spec` 中数值 0 表示“库默认值”（如 hyphenation=0 会退回
+    默认开启）；如需关闭某项请显式设置 `REPUB_ENABLE_*` 编译开关或后续版本会加入
+    “显式关闭”标志。
 
 ## 许可证
 
