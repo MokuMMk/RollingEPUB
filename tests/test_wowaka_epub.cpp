@@ -109,6 +109,10 @@ REPUB_TEST(wowaka_image_formats_and_dimensions) {
     };
     const Expected expected[] = {
         {"images/cover.jpg", 600, 900},
+        {"images/wowaka.jpg", 1200, 800},
+        {"images/album-wed.jpg", 600, 450},
+        {"images/album-rollingirl.jpg", 600, 450},
+        {"images/album-umg.png", 600, 450},
         {"images/miku.png", 1200, 675},
         {"images/stage.jpg", 1200, 800},
         {"images/guitar.bmp", 800, 1200},

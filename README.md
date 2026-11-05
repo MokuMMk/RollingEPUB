@@ -27,15 +27,15 @@
 | **脚注弹窗** | **图片缩放查看器** |
 | ![Footnote popup](docs/images/footnote-popup.png) | ![Image zoom](docs/images/image-zoom.png) |
 
-专题测试书 `tests/fixtures/epub/wowaka.epub`（主题：wowaka / hitorie，9 章，包含全部支持格式）：
+专题介绍书 `tests/fixtures/epub/wowaka.epub`（主题：wowaka / hitorie，9 章，包含全部支持格式）：
 
 | 封面 | 竖排（从右到左） |
 | --- | --- |
 | ![Cover](docs/images/wowaka-cover.png) | ![Vertical writing](docs/images/wowaka-vertical.png) |
 | **图文混排（虚拟歌手演唱会）** | **图片独占页（竖长舞台照）** |
-| ![Mixed text and image](docs/images/wowaka-gallery-0.png) | ![Image-only page](docs/images/wowaka-gallery-4.png) |
+| ![Mixed text and image](docs/images/wowaka-gallery-0.png) | ![Image-only page](docs/images/wowaka-gallery-5.png) |
 | **表格 / 代码 / 引用 / 上下标** | **jpg / png / gif / bmp 混排** |
-| ![Rich content page](docs/images/wowaka-life-p2.png) | ![Formats](docs/images/wowaka-gallery-2.png) |
+| ![Rich content page](docs/images/wowaka-life-p2.png) | ![Formats](docs/images/wowaka-gallery-1.png) |
 
 以上图片由本仓库的 `repub_cli` 在测试 EPUB 上直接渲染得到。`latin/cjk` 截图使用
 仓库自带的 `tests/fixtures/fonts/noto-subset.ttf`（子集未覆盖的字显示为方框，

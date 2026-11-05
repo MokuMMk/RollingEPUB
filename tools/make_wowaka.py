@@ -89,6 +89,7 @@ TITLE_BODY = """
 <p class="noindent center"><img src="../images/cover.jpg" alt="cover"/></p>
 <p class="epigraph">有些声音离开之后，反而在更多人的耳机里留下来。</p>
 <p class="noindent center small">1987 — 2019</p>
+<p class="noindent center small">音乐档案 · 2026</p>
 """
 
 BIO_BODY = """
@@ -96,6 +97,8 @@ BIO_BODY = """
 <p class="dropcap">ヲワカ，通常写作 wowaka。1987 年 11 月 4 日，他出生在东京。
 很多年后，人们记住的是那个在舞台上抱着吉他、把身体微微前倾的歌手，
 以及更早以前，那个在电脑屏幕前把一个个音符拖进时间线的年轻人。</p>
+<p class="noindent center"><img src="../images/wowaka.jpg" alt="wowaka"/></p>
+<p class="caption">wowaka（1987 — 2019）</p>
 <p>他的创作起步于网络。大约从 2009 年开始，wowaka 以 Vocaloid 制作人的身份
 发表作品，用初音未来等虚拟歌手的声音写歌。那时的投稿文化没有门槛，
 一首歌可以在几天内穿过整个互联网，被素未谋面的人听见。</p>
@@ -175,10 +178,17 @@ VOCALOID_BODY = """
   <tr><td>Rollin' Girl</td><td>2011</td><td>旋律不断向上推进</td></tr>
   <tr><td>Unknown Mother Goose</td><td>2017</td><td>初音未来十周年企划</td></tr>
 </table>
-<p>第一张图是虚拟歌手演唱会现场。灯光扫过观众席的时候，
-那种“屏幕里的声音站在舞台上”的错觉，正是他这一代制作人共同参与制造的现场。</p>
-<p class="noindent center"><img src="../images/miku.png" alt="virtual singer concert"/></p>
-<p class="caption">虚拟歌手的演唱会现场（公开授权图片）。</p>
+<p>这些歌的封面也成了很多人的记忆。它们大多只有黑、白、灰三种颜色，
+却能把歌里的速度和不安一并留下来。</p>
+<p class="noindent center"><img src="../images/album-wed.jpg" alt="World's End Dancehall"/></p>
+<p class="caption">《World's End Dancehall》</p>
+<p>它把舞厅的镜像感做成了循环的节拍，听起来像两个人不停交换位置。</p>
+<p class="noindent center"><img src="../images/album-rollingirl.jpg" alt="Rollin' Girl"/></p>
+<p class="caption">《Rollin' Girl》</p>
+<p>这首歌的旋律几乎不给自己留呼吸的空隙，副歌一次比一次高。</p>
+<p class="noindent center"><img src="../images/album-umg.png" alt="Unknown Mother Goose"/></p>
+<p class="caption">《Unknown Mother Goose》</p>
+<p>六年后的回归之作，速度依旧，但声音里多了一层回望。</p>
 <p>他的作品里经常出现一种结构：先用一段几乎重复的吉他动机把人带进去，
 再让人声从缝隙里挤出来。等听众习惯了速度，歌才真正开始。
 这种写法后来也被他带进了 hitorie。</p>
@@ -204,7 +214,7 @@ HITORIE_BODY = """
 hitorie 正式以四人体制活动。2014 年，他们发行首张单曲《センスレス・ワンダー》，
 随后是首张完整专辑《WONDER and WONDER》<a href="notes.xhtml#ref-live"><sup>3</sup></a>。</p>
 <p class="noindent center"><img src="../images/stage.jpg" alt="live stage"/></p>
-<p class="caption">摇滚现场的灯光（公开授权图片）。</p>
+<p class="caption">摇滚现场的灯光</p>
 <p>乐队的现场和录音室版本往往不太一样。同一个副歌，在现场会被拉长，
 吉他会更响，鼓会更快，wowaka 的声音也会更靠前。
 有观众说，看 hitorie 的演出像是在看一个人把自己的草稿当场重写。</p>
@@ -212,7 +222,7 @@ hitorie 正式以四人体制活动。2014 年，他们发行首张单曲《セ�
 这大概就是他从一个人的房间走向乐队的原因。</blockquote>
 <hr/>
 <p class="noindent center"><img src="../images/logo.png" alt="hitorie logo"/></p>
-<p class="caption">hitorie 的标识（公有领域图片）。</p>
+<p class="caption">hitorie</p>
 <p>乐队在 2019 年之后继续活动。シノダ开始担任主唱，イガラシ和ゆーまお留在原来的位置。
 对很多听众来说，这是一种很难但很诚实的继续。</p>
 <p><a href="sound.xhtml">下一章：声音的方法</a></p>
@@ -258,7 +268,7 @@ vocal: keep the line restless, never too smooth</pre>
 </div>
 <hr/>
 <p class="noindent center"><img src="../images/guitar.bmp" alt="guitar"/></p>
-<p class="caption">琴颈与琴身（公开授权图片）。</p>
+<p class="caption">琴颈与琴身</p>
 <p>他使用的吉他并不复杂，声音也不追求过度的失真。真正让歌变得锋利的是节奏，
 以及那种“下一个音马上就要来了”的预感<a href="notes.xhtml#ref-sound"><sup>4</sup></a>。</p>
 <p><a href="legacy.xhtml">下一章：之后</a></p>
@@ -281,7 +291,7 @@ LEGACY_BODY = """
 只要还有人按下播放键，歌里的速度就不会停下来。</blockquote>
 <hr/>
 <p class="noindent center"><img src="../images/tokyo.gif" alt="Tokyo at night"/></p>
-<p class="caption">东京的夜（公开授权图片）。</p>
+<p class="caption">东京的夜</p>
 <p>他出生在这座城市，也在这里写下最早的那些歌。城市夜晚的灯光、
 电车的声音、便利店的白光，后来都变成了他音乐里那种持续不断的背景噪音<a href="#note-legacy"><sup>5</sup></a>。</p>
 <p>参考：<a href="https://www.hitorie.jp/">hitorie 官方网站</a> ·
@@ -291,26 +301,30 @@ LEGACY_BODY = """
 
 IMAGES_BODY = """
 <h1 class="pb">影像</h1>
-<p class="dropcap">关于他的影像资料并不多。这里收集的，是与他音乐相伴的场景：
-虚拟歌手的舞台、摇滚现场的灯光、他手中的吉他、以及他出生的城市。
-它们不是他的肖像，却拼出了一种属于他的光线。</p>
-<p>第一张图是虚拟歌手演唱会现场。屏幕上的光与观众席的荧光棒连成一片，
-那是他最早被听见的地方。</p>
+<p class="dropcap">关于他的影像资料并不多。留下来的，是几张街拍、一些现场照片，
+以及他写下的歌所延伸出来的画面。它们拼在一起，构成一个并不完整、
+却足够靠近他的轮廓。</p>
+<p class="noindent center"><img src="../images/wowaka.jpg" alt="wowaka"/></p>
+<p class="caption">wowaka</p>
+<p>很多听众最初并不是先看见他，而是先听见初音未来的声音。
+屏幕里的虚拟歌手站在舞台中央，灯光扫过观众席，那是他最早被听见的地方。</p>
 <p class="noindent center"><img src="../images/miku.png" alt="virtual singer concert"/></p>
-<p class="caption">虚拟歌手的演唱会现场（公开授权图片）。</p>
-<p>第二张图是摇滚现场的灯光。hitorie 的演出常常从第一首歌开始就把音量推到很前面，
-灯光在鼓点和吉他之间切换，像另一件乐器。</p>
+<p class="caption">初音未来演唱会现场</p>
+<p>后来，场景从屏幕换到了 live house。hitorie 的演出常常从第一首歌开始
+就把音量推到最前面，灯光在鼓点和吉他之间切换，像另一件乐器。</p>
 <p class="noindent center"><img src="../images/stage.jpg" alt="live stage"/></p>
-<p class="caption">摇滚现场的灯光（公开授权图片）。</p>
-<p>第三张是吉他。短促的切分、几乎不留空白的节奏，是他最容易被辨认的声音记号。</p>
+<p class="caption">摇滚现场</p>
+<p>吉他大概是他最容易被辨认的声音记号。短促的切分、几乎不留空白的节奏，
+都从这把琴上开始。</p>
 <p class="noindent center"><img src="../images/guitar.bmp" alt="guitar"/></p>
-<p class="caption">琴颈与琴身（公开授权图片）。</p>
-<p>第四张是东京的夜。他在这里出生、写歌，也在这里离开。</p>
+<p class="caption">琴颈与琴身</p>
+<p>他出生在东京，也在这里写歌、离开。城市的夜色后来变成他音乐里
+那种持续不断的背景噪音。</p>
 <p class="noindent center"><img src="../images/tokyo.gif" alt="Tokyo at night"/></p>
-<p class="caption">东京的夜（公开授权图片）。</p>
-<p>下一张是竖长的画面：舞台的灯从下往上延伸，像一条没有尽头的通道。</p>
+<p class="caption">东京的夜</p>
+<p>最后一幅画面是竖长的：舞台的灯从下往上延伸，像一条没有尽头的通道。</p>
 <p class="noindent center"><img src="../images/tall.png" alt="tall stage"/></p>
-<p>图片与资料说明见<a href="notes.xhtml#ref-photo"><img src="../images/logo-icon.png" alt="note"/></a>。</p>
+<p class="noindent center">关于这些照片的来历，见书末<a href="notes.xhtml#ref-photo"><img src="../images/logo-icon.png" alt="注"/></a>。</p>
 """
 
 VERTICAL_BODY = """
@@ -324,29 +338,33 @@ VERTICAL_BODY = """
 <p>「まだ終わらない。」<ruby>声音<rt>sound</rt></ruby>在舞台上停了一拍，
 又继续。标点按竖排的规则落在字的右侧：，。！？（）《》——
 这些细小的位置，决定了阅读的呼吸。</p>
-<p>最后一段仍然使用中文标点：，。！？（）《》——用来结束这一章，
-也用来检查竖排中的禁则与标点位置。</p>
+<p>风从河面吹过来，观众安静地听着。那一刻，歌比语言更接近他。</p>
 """
 
 NOTES_BODY = """
-<h1>注释与来源</h1>
+<h1>资料与图片</h1>
+<h2>注释</h2>
 <aside epub:type="footnote" id="ref-live">注 3：hitorie 于 2011 年由 wowaka、イガラシ、ゆーまお组成前身乐队，
 2012 年シノダ加入后正式以四人体制活动；2014 年发行首张单曲《センスレス・ワンダー》。</aside>
 <aside epub:type="footnote" id="ref-sound">注 4：关于速度与编曲的描述来自对公开作品的听感整理，BPM 与配器仅为近似说明。</aside>
-<aside epub:type="footnote" id="ref-photo">注 6：本书图片来自 Wikimedia Commons 的公开授权照片与公有领域 hitorie 标识；
-未使用 wowaka 本人的受版权保护照片。具体署名与许可证见下。</aside>
+<aside epub:type="footnote" id="ref-photo">注 6：本册使用的 wowaka 街拍与作品封面来自网络公开资料，
+仅用于个人阅读与非商业介绍；著作权归原权利人所有。场景照片来自 Wikimedia Commons，
+署名见下。</aside>
 <aside epub:type="footnote" id="ref-legacy">注 5：追悼演出、歌词集与初音未来交响音乐会的相关信息依据公开报道整理。</aside>
 <p>文字资料参考：<a href="https://www.hitorie.jp/">hitorie 官方网站</a>、
 <a href="https://ja.wikipedia.org/wiki/Wowaka">Wikipedia：wowaka</a>。
-本文为原创纪念性文字，不包含歌词，也不代表官方立场。</p>
+本册为个人编辑的非官方读物，不包含歌词，也不代表官方立场。</p>
 <h2>图片来源</h2>
 <ul class="small">
+  <li>wowaka 街拍与《World's End Dancehall》《Rollin' Girl》《Unknown Mother Goose》封面：
+    网络公开资料，仅用于本册个人阅读。</li>
   <li>初音未来演唱会照片：MIKI Yoshihito，CC BY 2.0，Wikimedia Commons。</li>
   <li>摇滚现场照片：Shixart1985，CC BY 2.0，Wikimedia Commons。</li>
   <li>吉他照片：Shixart1985，CC BY 2.0，Wikimedia Commons。</li>
   <li>东京夜景照片：Nalilord，CC BY-SA 3.0，Wikimedia Commons。</li>
   <li>hitorie 标识：公有领域，Wikimedia Commons。</li>
 </ul>
+<p class="small">本册仅供个人阅读，不用于商业传播。图片与文字版权归各自权利人所有。</p>
 """
 
 
@@ -362,13 +380,29 @@ def _white_logo(size: tuple[int, int]) -> Image.Image:
     return ImageOps.fit(logo, size, method=Image.Resampling.LANCZOS)
 
 
-def _cover() -> bytes:
-    base = ImageOps.fit(_load("tokyo.jpg"), (600, 900), method=Image.Resampling.LANCZOS)
-    dark = ImageEnhance.Brightness(base).enhance(0.62)
-    logo = _white_logo((360, 84))
-    dark.paste(logo, (120, 720), logo)
+def _portrait_jpg() -> bytes:
+    im = ImageOps.fit(_load("wowaka-portrait.jpg"), (1200, 800),
+                      method=Image.Resampling.LANCZOS)
     buf = io.BytesIO()
-    dark.save(buf, format="JPEG", quality=88)
+    im.save(buf, format="JPEG", quality=90)
+    return buf.getvalue()
+
+
+def _album(name: str, fmt: str, size: tuple[int, int] = (600, 450)) -> bytes:
+    im = Image.open(ASSETS / name).convert("RGB")
+    im = ImageOps.fit(im, size, method=Image.Resampling.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, format=fmt, quality=90)
+    return buf.getvalue()
+
+
+def _cover() -> bytes:
+    # The cover uses the wowaka street portrait itself.
+    im = ImageOps.fit(_load("wowaka-portrait.jpg"), (600, 900),
+                      method=Image.Resampling.LANCZOS)
+    im = ImageEnhance.Brightness(im).enhance(0.96)
+    buf = io.BytesIO()
+    im.save(buf, format="JPEG", quality=90)
     return buf.getvalue()
 
 
@@ -460,13 +494,13 @@ def opf() -> str:
     return """<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="bookid">urn:uuid:rolling-epub-wowaka-fixture</dc:identifier>
+    <dc:identifier id="bookid">urn:uuid:7f3c2a1e-5b64-4d8a-9c21-6e0f4b8d2a73</dc:identifier>
     <dc:title>wowaka：把噪音写成旋律的人</dc:title>
-    <dc:creator>RollingEPUB 音乐档案</dc:creator>
+    <dc:creator>音乐档案</dc:creator>
     <dc:language>zh-CN</dc:language>
-    <dc:publisher>RollingEPUB</dc:publisher>
-    <dc:date>2026-01-01</dc:date>
-    <dc:description>关于 wowaka（ヲワカ，1987—2019）与 hitorie 的资料性纪念册；原创文字，不含歌词。</dc:description>
+    <dc:publisher>个人出版</dc:publisher>
+    <dc:date>2026-11-05</dc:date>
+    <dc:description>关于 wowaka（ヲワカ，1987—2019）与 hitorie 的个人纪念册；原创文字，不含歌词。</dc:description>
     <meta property="belongs-to-collection">音乐人档案</meta>
     <meta property="group-position">1</meta>
     <meta name="cover" content="cover-image"/>
@@ -485,6 +519,10 @@ def opf() -> str:
     <item id="images" href="text/images.xhtml" media-type="application/xhtml+xml"/>
     <item id="vertical" href="text/vertical.xhtml" media-type="application/xhtml+xml"/>
     <item id="notes" href="text/notes.xhtml" media-type="application/xhtml+xml"/>
+    <item id="wowaka-photo" href="../images/wowaka.jpg" media-type="image/jpeg"/>
+    <item id="album-wed" href="../images/album-wed.jpg" media-type="image/jpeg"/>
+    <item id="album-rollingirl" href="../images/album-rollingirl.jpg" media-type="image/jpeg"/>
+    <item id="album-umg" href="../images/album-umg.png" media-type="image/png"/>
     <item id="miku" href="../images/miku.png" media-type="image/png"/>
     <item id="stage" href="../images/stage.jpg" media-type="image/jpeg"/>
     <item id="guitar" href="../images/guitar.bmp" media-type="image/bmp"/>
@@ -531,7 +569,7 @@ def nav() -> str:
       <li><a href="text/legacy.xhtml">之后</a></li>
       <li><a href="text/images.xhtml">影像</a></li>
       <li><a href="text/vertical.xhtml">竖排：声音的方向</a></li>
-      <li><a href="text/notes.xhtml">注释与来源</a></li>
+      <li><a href="text/notes.xhtml">资料与图片</a></li>
     </ol>
   </nav>
 </body>
@@ -549,7 +587,7 @@ def ncx() -> str:
         ("之后", "text/legacy.xhtml"),
         ("影像", "text/images.xhtml"),
         ("竖排：声音的方向", "text/vertical.xhtml"),
-        ("注释与来源", "text/notes.xhtml"),
+        ("资料与图片", "text/notes.xhtml"),
     ]
     body = "\n".join(
         f'    <navPoint id="np{i}" playOrder="{i}"><navLabel><text>{t}</text></navLabel>'
@@ -558,7 +596,7 @@ def ncx() -> str:
     )
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-  <head><meta name="dtb:uid" content="urn:uuid:rolling-epub-wowaka-fixture"/></head>
+  <head><meta name="dtb:uid" content="urn:uuid:7f3c2a1e-5b64-4d8a-9c21-6e0f4b8d2a73"/></head>
   <docTitle><text>wowaka：把噪音写成旋律的人</text></docTitle>
   <navMap>
 {body}
@@ -584,8 +622,12 @@ def build() -> None:
         "OEBPS/text/legacy.xhtml": xhtml("之后", LEGACY_BODY).encode(),
         "OEBPS/text/images.xhtml": xhtml("影像", IMAGES_BODY).encode(),
         "OEBPS/text/vertical.xhtml": xhtml("竖排：声音的方向", VERTICAL_BODY).encode(),
-        "OEBPS/text/notes.xhtml": xhtml("注释与来源", NOTES_BODY).encode(),
+        "OEBPS/text/notes.xhtml": xhtml("资料与图片", NOTES_BODY).encode(),
         "OEBPS/images/cover.jpg": _cover(),
+        "OEBPS/images/wowaka.jpg": _portrait_jpg(),
+        "OEBPS/images/album-wed.jpg": _album("cover-wed.png", "JPEG"),
+        "OEBPS/images/album-rollingirl.jpg": _album("cover-rollingirl.jpg", "JPEG"),
+        "OEBPS/images/album-umg.png": _album("cover-umg.png", "PNG"),
         "OEBPS/images/miku.png": _miku_png(),
         "OEBPS/images/stage.jpg": _stage_jpg(),
         "OEBPS/images/guitar.bmp": _guitar_bmp(),

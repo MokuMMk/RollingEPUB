@@ -417,6 +417,18 @@ class Builder {
     size_t run_cursor_ = 0;
     size_t run_end_ = 0;
     size_t block_limit_ = 0;
+    size_t current_block_index_ = 0;
+
+    /* A short centred paragraph right after an image is treated as its
+     * caption: keep the image and caption together instead of leaving an
+     * orphan caption at the top of the next page. */
+    bool caption_follows() const {
+        const size_t next = current_block_index_ + 1;
+        if (next >= flow_.blocks.size()) return false;
+        const FlowBlock& b = flow_.blocks[next];
+        return b.type == REPUB_BLOCK_PARAGRAPH && b.len > 0 && b.len < 160 &&
+               (b.flags & (FBLOCK_CENTER | FBLOCK_RIGHT)) != 0;
+    }
 
     /* Vertical writing continuation state (persists across blocks). */
     int v_column_ = 0;
@@ -1262,7 +1274,9 @@ bool Builder::layout_image_block(const FlowBlock& block) {
     }
 
     int leading = page_empty() ? 0 : default_gap();
-    if (y_ + leading + h > bottom_ && !page_empty()) {
+    const int caption_reserve =
+        caption_follows() ? std::max(40, body_px_ * line_percent_ / 100 * 2) : 0;
+    if (y_ + leading + h + caption_reserve > bottom_ && !page_empty()) {
         if (!new_page(static_cast<uint32_t>(block.offset))) return true;
         leading = 0;
     }
@@ -1532,6 +1546,7 @@ bool Builder::layout_vertical() {
     v_column_top_ = page_index_ == 0 ? page_top_ + first_page_extra_ : page_top_;
     v_cursor_x_ = content_x_ + content_w_;
     for (size_t i = 0; i < flow_.blocks.size() && !stopped_; ++i) {
+        current_block_index_ = i;
         const FlowBlock& block = flow_.blocks[i];
         if (block.page_break_before && !page_empty()) {
             if (!new_page(block.offset)) break;
@@ -1590,6 +1605,7 @@ bool Builder::run() {
         layout_vertical();
     } else {
         for (size_t i = 0; i < flow_.blocks.size() && !stopped_; ++i) {
+            current_block_index_ = i;
             const FlowBlock& block = flow_.blocks[i];
             if (block.page_break_before && !page_empty()) {
                 if (!new_page(block.offset)) break;
