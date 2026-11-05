@@ -25,3 +25,6 @@ compile_commands.json
 # per-module build dirs
 build-*/
 
+
+# component pack output
+dist/

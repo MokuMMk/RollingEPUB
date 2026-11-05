@@ -1,0 +1,23 @@
+version: "1.0.0"
+description: "Portable EPUB parsing, pagination and rendering library for ESP32 and Arduino."
+url: "https://github.com/MokuMMk/RollingEPUB"
+repository: "https://github.com/MokuMMk/RollingEPUB.git"
+license: "MIT"
+tags:
+  - epub
+  - ebook
+  - reader
+  - text-layout
+  - embedded
+dependencies:
+  idf: ">=5.0"
+files:
+  exclude:
+    - "tests/**/*"
+    - "tools/**/*"
+    - "docs/**/*"
+    - "examples/**/*"
+    - "scripts/**/*"
+    - "esp-idf/**/*"
+    - "library.json"
+    - "library.properties"
