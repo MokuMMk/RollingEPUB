@@ -424,6 +424,10 @@ typedef struct repub_layout_spec {
 typedef struct repub_layout repub_layout_t;
 typedef struct repub_page repub_page_t;
 
+/* Fill a layout spec with the documented defaults.  Always call this (or set
+ * struct_size) before passing a hand-initialized spec. */
+void repub_layout_spec_defaults(repub_layout_spec_t *spec);
+
 repub_err_t repub_layout_create(const repub_chapter_t *chapter,
                                 const repub_layout_spec_t *spec,
                                 repub_layout_t **out);
@@ -459,12 +463,19 @@ enum repub_span_flags {
     REPUB_SPAN_LINK = 1u << 7
 };
 
-/* One horizontal (or vertical) run of same-style text on a page. */
+/* One run of same-style text on a page.
+ *
+ * Horizontal writing: x = left edge, y = baseline, width = advance,
+ * height = line box height.
+ * Vertical writing: x = left edge of the column, y = top of the run,
+ * width = column pitch (line height), height = run length down the column.
+ * A page's spans are ordered in reading order; line_index groups them into
+ * lines (horizontal) or columns (vertical). */
 typedef struct repub_span {
     uint32_t text_offset; /* into chapter text */
     uint32_t text_len;    /* UTF-8 bytes */
-    int32_t x;            /* left edge (horizontal) / top edge (vertical) */
-    int32_t y;            /* baseline (horizontal) / right edge (vertical) */
+    int32_t x;
+    int32_t y;
     int32_t width;
     int32_t height;
     uint16_t line_index;
@@ -600,6 +611,10 @@ typedef struct repub_render_options {
     int32_t threshold;          /* 0..255, 128 default */
 } repub_render_options_t;
 
+/* Fill render options with defaults (underlines on, images on, text 0,
+ * background -1, threshold 128, dither chosen for the canvas by the caller). */
+void repub_render_options_defaults(repub_render_options_t *options);
+
 /* Render a laid-out page into the canvas. Images are decoded on demand. */
 repub_err_t repub_page_render(const repub_page_t *page,
                               repub_canvas_t *canvas,
@@ -626,6 +641,11 @@ repub_reader_t *repub_reader_open(const repub_platform_t *platform,
                                   const repub_layout_spec_t *layout,
                                   const repub_open_options_t *options,
                                   repub_err_t *err);
+/* Attach an already opened (and configured) book, taking ownership of it.
+ * Use this to register custom fonts or tweak options before layout. */
+repub_reader_t *repub_reader_attach(repub_book_t *book,
+                                    const repub_layout_spec_t *layout,
+                                    repub_err_t *err);
 void repub_reader_close(repub_reader_t *reader);
 repub_book_t *repub_reader_book(repub_reader_t *reader);
 

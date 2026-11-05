@@ -1,0 +1,36 @@
+{
+  "name": "RollingEPUB",
+  "version": "1.0.0",
+  "description": "Portable EPUB parsing, layout and rendering library (merged CrossSIGO + Read Pico engines): OPF/NCX/NAV, HTML/CSS, CJK pagination, footnotes, images, zoom, TTF text.",
+  "keywords": [
+    "epub",
+    "ebook",
+    "reader",
+    "eink",
+    "esp32",
+    "layout",
+    "pagination",
+    "typography",
+    "css",
+    "ttf"
+  ],
+  "authors": [
+    {
+      "name": "RollingEPUB contributors",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "srcDir": "src",
+  "includeDir": "include",
+  "build": {
+    "flags": [
+      "-std=gnu++17"
+    ],
+    "unflags": [
+      "-std=gnu++11"
+    ]
+  }
+}

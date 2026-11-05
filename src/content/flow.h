@@ -32,7 +32,8 @@ enum RunFlags : uint16_t {
     RUN_UNDERLINE = 1u << 2,
     RUN_STRIKE = 1u << 3,
     RUN_SUPERSCRIPT = 1u << 4,
-    RUN_SUBSCRIPT = 1u << 5
+    RUN_SUBSCRIPT = 1u << 5,
+    RUN_LINK = 1u << 6
 };
 
 struct Run {
@@ -72,6 +73,9 @@ struct FlowBlock {
     uint16_t run_first = 0;
     uint16_t run_count = 0;
     uint8_t drop_cap_lines = 0; /* initial-letter line count, 0 = none */
+    uint8_t page_break_before = 0; /* CSS page-break-before */
+    uint8_t page_break_after = 0;  /* CSS page-break-after */
+    uint8_t line_break_after = 0;  /* block ends with <br>: break line, no paragraph gap */
     bool preserve_whitespace = false;
 };
 

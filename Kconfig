@@ -1,0 +1,64 @@
+menu "RollingEPUB"
+
+    config REPUB_ENABLE_TOC
+        bool "Parse NCX/NAV table of contents"
+        default y
+    config REPUB_ENABLE_COVER
+        bool "Cover lookup and decoding"
+        default y
+    config REPUB_ENABLE_CSS
+        bool "CSS parsing and cascade"
+        default y
+    config REPUB_ENABLE_FOOTNOTES
+        bool "Footnote extraction and popup data"
+        default y
+    config REPUB_ENABLE_TABLES
+        bool "Table row blocks"
+        default y
+    config REPUB_ENABLE_DROP_CAPS
+        bool "Drop caps"
+        default y
+    config REPUB_ENABLE_RUBY
+        bool "Ruby annotation handling"
+        default y
+    config REPUB_ENABLE_HYPHENATION
+        bool "Liang hyphenation"
+        default y
+    config REPUB_ENABLE_VERTICAL_TEXT
+        bool "Vertical CJK writing mode"
+        default y
+    config REPUB_ENABLE_BIDI
+        bool "RTL reordering"
+        default y
+    config REPUB_ENABLE_TTF
+        bool "TrueType font rasterizer (stb_truetype)"
+        default y
+    config REPUB_ENABLE_BUILTIN_FONT
+        bool "Built-in bitmap fallback font"
+        default y
+    config REPUB_ENABLE_TEXT_ANTIALIASING
+        bool "Antialiased text coverage"
+        default y
+    config REPUB_ENABLE_DITHERING
+        bool "Image dithering"
+        default y
+    config REPUB_ENABLE_GRAYSCALE
+        bool "Gray2/4/8 canvases"
+        default y
+    config REPUB_ENABLE_IMAGES
+        bool "Image decoding (stb_image)"
+        default y
+    config REPUB_ENABLE_IMAGE_ZOOM
+        bool "Image pan/zoom viewer helpers"
+        default y
+    config REPUB_ENABLE_GIF
+        bool "GIF decoding"
+        default y
+    config REPUB_ENABLE_CACHE
+        bool "In-memory chapter/layout cache"
+        default y
+    config REPUB_ENABLE_PROGRESS
+        bool "Byte-weighted reading progress"
+        default y
+
+endmenu

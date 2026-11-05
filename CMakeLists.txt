@@ -1,5 +1,36 @@
 cmake_minimum_required(VERSION 3.20)
 
+# ---------------------------------------------------------------------------
+# ESP-IDF component mode
+#
+# Drop the repository into an IDF project as components/rolling_epub/.
+# ESP_PLATFORM is defined by IDF, so this file registers a component instead of
+# a standalone project.  Feature defaults come from
+# include/rolling_epub/repub_config.h; override with compile definitions.
+# ---------------------------------------------------------------------------
+if(DEFINED ESP_PLATFORM)
+    file(GLOB_RECURSE REPUB_IDF_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_LIST_DIR}/src/*.cpp")
+    idf_component_register(
+        SRCS ${REPUB_IDF_SOURCES}
+        INCLUDE_DIRS "include"
+        PRIV_INCLUDE_DIRS "src" "third_party")
+    target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+    # Map Kconfig switches onto the repub_config.h feature macros.
+    foreach(opt TOC COVER CSS FOOTNOTES TABLES DROP_CAPS RUBY HYPHENATION
+                VERTICAL_TEXT BIDI TTF BUILTIN_FONT TEXT_ANTIALIASING DITHERING
+                GRAYSCALE IMAGES IMAGE_ZOOM GIF CACHE PROGRESS)
+        if(DEFINED CONFIG_REPUB_ENABLE_${opt})
+            if(CONFIG_REPUB_ENABLE_${opt})
+                target_compile_definitions(${COMPONENT_LIB} PUBLIC REPUB_ENABLE_${opt}=1)
+            else()
+                target_compile_definitions(${COMPONENT_LIB} PUBLIC REPUB_ENABLE_${opt}=0)
+            endif()
+        endif()
+    endforeach()
+    return()
+endif()
+
 project(RollingEPUB
     VERSION 1.0.0
     DESCRIPTION "Portable EPUB parsing, layout and rendering library"
@@ -66,23 +97,15 @@ endforeach()
 
 # ---------------------------------------------------------------------------
 # Sources
+#
+# miniz is compiled as part of src/container/zip.cpp (that TU includes
+# third_party/miniz.c) so the library has exactly one miniz translation unit on
+# every build system (CMake, PlatformIO, Arduino, ESP-IDF).
 # ---------------------------------------------------------------------------
 file(GLOB_RECURSE REPUB_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
-add_library(repub_thirdparty OBJECT third_party/miniz.c)
-target_compile_definitions(repub_thirdparty PRIVATE
-    MINIZ_NO_STDIO
-    MINIZ_NO_TIME
-    MINIZ_NO_ZLIB_COMPATIBLE_NAMES
-    MINIZ_NO_ARCHIVE_WRITING_APIS)
-if(NOT MSVC)
-    target_compile_options(repub_thirdparty PRIVATE -w)
-endif()
-set_target_properties(repub_thirdparty PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-add_library(rolling_epub STATIC ${REPUB_SOURCES} $<TARGET_OBJECTS:repub_thirdparty>)
+add_library(rolling_epub STATIC ${REPUB_SOURCES})
 set_target_properties(rolling_epub PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_library(RollingEPUB::rolling_epub ALIAS rolling_epub)
 
@@ -104,7 +127,7 @@ if(NOT MSVC)
 endif()
 
 if(REPUB_BUILD_SHARED)
-    add_library(rolling_epub_shared SHARED ${REPUB_SOURCES} $<TARGET_OBJECTS:repub_thirdparty>)
+    add_library(rolling_epub_shared SHARED ${REPUB_SOURCES})
     set_target_properties(rolling_epub_shared PROPERTIES OUTPUT_NAME rolling_epub)
     target_compile_features(rolling_epub_shared PUBLIC cxx_std_17)
     target_compile_definitions(rolling_epub_shared PUBLIC ${REPUB_FEATURE_DEFS})

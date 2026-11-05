@@ -73,7 +73,8 @@ enum CssDefined : uint32_t {
     CSS_DEF_BORDER_LEFT = 1u << 19,
     CSS_DEF_SHADED = 1u << 20,
     CSS_DEF_INITIAL_LETTER = 1u << 21,
-    CSS_DEF_FLOAT_LEFT = 1u << 22
+    CSS_DEF_FLOAT_LEFT = 1u << 22,
+    CSS_DEF_LIST_STYLE = 1u << 23
 };
 
 enum CssDecoration : uint8_t {
@@ -103,6 +104,7 @@ struct CssStyle {
     uint8_t shaded = 0;
     uint8_t initial_letter = 0;
     uint8_t float_left = 0;
+    uint8_t list_style_none = 0; /* list-style(-type): none */
     CssBorderSide border_top, border_right, border_bottom, border_left;
 
     void apply(const CssStyle& overlay); /* overlay's defined fields win */
