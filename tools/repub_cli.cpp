@@ -50,6 +50,7 @@ void print_usage() {
         "  --height N           page height in pixels       (default 800)\n"
         "  --font-size N        body font size in pixels    (default 22)\n"
         "  --line-height N      line height percent         (default 160)\n"
+        "  --margin N           page margins in pixels       (default 0)\n"
         "  --vertical           vertical writing mode\n"
         "  --font file.ttf      load a TTF as the body font\n"
         "  --mono               render into a MONO1 canvas  (default GRAY8)\n"
@@ -82,6 +83,7 @@ struct Options {
     int32_t height = 800;
     int32_t font_size = 22;
     int32_t line_height = 160;
+    int32_t margin = 0;
     int32_t page = 0;
     bool page_set = false;
     bool vertical = false;
@@ -112,6 +114,9 @@ bool parse_options(int argc, char** argv, std::vector<std::string>* positional,
         } else if (arg == "--line-height") {
             std::string value;
             if (!next_value(&value) || !parse_int(value, &options->line_height)) return false;
+        } else if (arg == "--margin") {
+            std::string value;
+            if (!next_value(&value) || !parse_int(value, &options->margin)) return false;
         } else if (arg == "--page") {
             std::string value;
             if (!next_value(&value) || !parse_int(value, &options->page)) return false;
@@ -133,7 +138,7 @@ bool parse_options(int argc, char** argv, std::vector<std::string>* positional,
         }
     }
     if (options->width <= 0 || options->height <= 0 || options->font_size <= 0 ||
-        options->line_height <= 0 || options->page < 0) {
+        options->line_height <= 0 || options->margin < 0 || options->page < 0) {
         return false;
     }
     return true;
@@ -143,6 +148,10 @@ repub_layout_spec_t make_spec(const Options& options) {
     repub_layout_spec_t spec = repub::default_layout_spec(
         repub_rect_t{0, 0, options.width, options.height}, options.font_size);
     spec.line_height_percent = options.line_height;
+    spec.margin_left_px = options.margin;
+    spec.margin_right_px = options.margin;
+    spec.margin_top_px = options.margin;
+    spec.margin_bottom_px = options.margin;
     if (options.vertical) spec.writing_mode = REPUB_WRITING_VERTICAL_RL;
     return spec;
 }
