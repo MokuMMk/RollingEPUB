@@ -196,7 +196,7 @@ Additional verification:
 - release build with `-Werror`: clean.
 - reduced builds compile: no-TTF, no-images, and a "text-only" configuration
   with CSS/vertical/hyphenation/images/TOC/progress all disabled.
-- 31 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
+- 19 real EPUB fixtures open with sane metadata/spine/TOC; malformed ZIP/OPF
   and empty-spine inputs return errors without crashing.
 - CLI end-to-end: `info`, `toc`, `text`, `blocks`, `notes`, `pages`, `render`
   (PNG/PGM/PPM), `image`, `cover`, `selftest`.

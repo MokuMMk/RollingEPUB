@@ -25,7 +25,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS = ROOT / "tools" / "assets" / "rollinggirl"
+ASSETS = ROOT / "tools" / "assets" / "wowaka"
 OUT = ROOT / "tests" / "fixtures" / "epub" / "rollinggirl.epub"
 
 CONTAINER = """<?xml version="1.0" encoding="UTF-8"?>
@@ -374,7 +374,7 @@ def _load(name: str) -> Image.Image:
 
 
 def _cover() -> bytes:
-    art = _load("art.jpg")
+    art = _load("cover-rollingirl.jpg")
     canvas = Image.new("RGB", (600, 900), (12, 12, 14))
     fitted = ImageOps.fit(art, (600, 450), method=Image.Resampling.LANCZOS)
     canvas.paste(fitted, (0, 225))
@@ -386,14 +386,14 @@ def _cover() -> bytes:
 
 
 def _art_png() -> bytes:
-    im = ImageOps.fit(_load("art.jpg"), (1200, 900), method=Image.Resampling.LANCZOS)
+    im = ImageOps.fit(_load("cover-rollingirl.jpg"), (1200, 900), method=Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     im.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
 
 
 def _detail_jpg() -> bytes:
-    im = ImageOps.fit(_load("art.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
+    im = ImageOps.fit(_load("cover-rollingirl.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
     im = im.crop((100, 120, 700, 480)).resize((800, 600), Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     im.save(buf, format="JPEG", quality=88)
@@ -401,7 +401,7 @@ def _detail_jpg() -> bytes:
 
 
 def _motion_gif() -> bytes:
-    art = ImageOps.fit(_load("art.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
+    art = ImageOps.fit(_load("cover-rollingirl.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
     dark = ImageEnhance.Brightness(art).enhance(0.72)
     frames = [art.convert("P", palette=Image.Palette.ADAPTIVE, colors=96),
               dark.convert("P", palette=Image.Palette.ADAPTIVE, colors=96)]
@@ -412,7 +412,7 @@ def _motion_gif() -> bytes:
 
 
 def _texture_bmp() -> bytes:
-    art = ImageOps.fit(_load("art.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
+    art = ImageOps.fit(_load("cover-rollingirl.jpg"), (800, 600), method=Image.Resampling.LANCZOS)
     im = art.crop((100, 0, 900, 600))
     buf = io.BytesIO()
     im.save(buf, format="BMP")
@@ -420,7 +420,7 @@ def _texture_bmp() -> bytes:
 
 
 def _tall_png() -> bytes:
-    art = _load("art.jpg")
+    art = _load("cover-rollingirl.jpg")
     slice_ = art.crop((320, 0, 704, 768))
     tall = slice_.resize((800, 2048), Image.Resampling.LANCZOS)
     canvas = Image.new("RGB", (800, 2048), (255, 255, 255))
@@ -431,14 +431,14 @@ def _tall_png() -> bytes:
 
 
 def _icon_png() -> bytes:
-    art = ImageOps.fit(_load("art.jpg"), (48, 48), method=Image.Resampling.LANCZOS)
+    art = ImageOps.fit(_load("cover-rollingirl.jpg"), (48, 48), method=Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     art.save(buf, format="PNG")
     return buf.getvalue()
 
 
 def _author_jpg() -> bytes:
-    im = ImageOps.fit(_load("wowaka.jpg"), (600, 400), method=Image.Resampling.LANCZOS)
+    im = ImageOps.fit(_load("wowaka-portrait.jpg"), (600, 400), method=Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     im.save(buf, format="JPEG", quality=88)
     return buf.getvalue()
