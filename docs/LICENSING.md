@@ -8,8 +8,8 @@ projects with compatible permissive licenses.
 
 | Source | License | Used for |
 | --- | --- | --- |
-| CrossSIGO / CrossMux | MIT | CSS model, hyphenation (algorithm + EN patterns), entity table, OPF/NCX/NAV structure, page model concepts, image dithering concepts, ZIP conventions |
-| Read Pico / kiikoread | Apache-2.0 (only Apache-2.0 files) | ZIP access policy, OPF/spine/cover pipeline, HTML→blocks state machine, footnote/anchor extraction, CJK/vertical pagination, TTF glyph cache concepts, image header probing |
+| CrossMux | MIT | CSS model, hyphenation (algorithm + EN patterns), entity table, OPF/NCX/NAV structure, page model concepts, image dithering concepts, ZIP conventions |
+| Read Pico | Apache-2.0 (only Apache-2.0 files) | ZIP access policy, OPF/spine/cover pipeline, HTML→blocks state machine, footnote/anchor extraction, CJK/vertical pagination, TTF glyph cache concepts, image header probing |
 | miniz | MIT | ZIP inflate / central directory |
 | stb_image, stb_truetype | Public domain / MIT | image decode, TTF rasterization |
 | Noto Sans subset (tests only) | SIL OFL 1.1 | TTF rendering tests/demo |

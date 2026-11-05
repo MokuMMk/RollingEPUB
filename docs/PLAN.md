@@ -9,8 +9,8 @@ Source projects (read-only inputs, never modified):
 
 | Project | Stack | EPUB code | License |
 | --- | --- | --- | --- |
-| `D:\CrossSIGO\crossmux` | C++17 / PlatformIO / ESP32 | `lib/Epub` (~40k lines), `lib/ZipFile`, `lib/miniz`, `lib/EpdFont`, `lib/Txt`, `lib/Xtc` | MIT |
-| `D:\Read Pico` | C / ESP-IDF / ESP32-S3/P4 | `main/book` (book_epub, html_text, book_layout, zip_reader, cover, image header) | Apache-2.0 (new material possibly more restrictive; only Apache-2.0 files are reused) |
+| [0x1abin/crossmux](https://github.com/0x1abin/crossmux) | C++17 / PlatformIO / ESP32 | `lib/Epub` (~40k lines), `lib/ZipFile`, `lib/miniz`, `lib/EpdFont`, `lib/Txt`, `lib/Xtc` | MIT |
+| [wegooo-cell/read-pico-reader](https://github.com/wegooo-cell/read-pico-reader) | C / ESP-IDF / ESP32-S3/P4 | `main/book` (book_epub, html_text, book_layout, zip_reader, cover, image header) | Apache-2.0 (new material possibly more restrictive; only Apache-2.0 files are reused) |
 
 ## Product requirements
 

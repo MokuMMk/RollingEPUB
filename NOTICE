@@ -12,7 +12,7 @@ provenance comment naming the origin.
 MIT License. See licenses/MIT.txt.
 
 -------------------------------------------------------------------------------
-2. CrossSIGO / CrossMux
+2. CrossMux
 -------------------------------------------------------------------------------
 Upstream: https://github.com/0x1abin/crossmux (CrossPoint Reader fork)
 License: MIT
@@ -34,7 +34,7 @@ Adapted areas:
   * ZIP container conventions (lib/ZipFile, lib/miniz)
 
 -------------------------------------------------------------------------------
-3. Read Pico / kiikoread
+3. Read Pico
 -------------------------------------------------------------------------------
 Upstream: https://github.com/wegooo-cell/read-pico-reader
 License of reused files: Apache-2.0 (SPDX-License-Identifier: Apache-2.0 in the
@@ -91,7 +91,7 @@ Apache-2.0 per the repository LICENSE scope) are reused.
 -------------------------------------------------------------------------------
 5. Trademarks
 -------------------------------------------------------------------------------
-EPUB is a registered trademark of the W3C. CrossMux, CrossSIGO, Read Pico,
-kiikoread, Noto and other names are the property of their respective owners.
+EPUB is a registered trademark of the W3C. CrossMux, Read Pico, Noto and other
+names are the property of their respective owners.
 This project is an independent consolidation and is not endorsed by any of
 them.

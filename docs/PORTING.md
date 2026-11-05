@@ -1,9 +1,14 @@
-# Porting from CrossSIGO / Read Pico
+# Porting from CrossMux / Read Pico
+
+This document maps the two upstream EPUB stacks to RollingEPUB:
+
+- [CrossMux](https://github.com/0x1abin/crossmux) — `lib/Epub` (MIT)
+- [Read Pico](https://github.com/wegooo-cell/read-pico-reader) — `main/book` (Apache-2.0)
 
 This document maps the old project APIs to RollingEPUB so an existing reader can
 adopt the library incrementally.
 
-## From CrossSIGO / CrossMux (`lib/Epub`)
+## From CrossMux (`lib/Epub`)
 
 | Old API | RollingEPUB |
 | --- | --- |

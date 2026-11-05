@@ -1,10 +1,11 @@
+# RollingEPUB
+
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.x-E7352C?logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
 [![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
 
-# RollingEPUB
-
-**一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 CrossSIGO（CrossMux）与 Read Pico
-两个阅读器里的 EPUB 能力合并成一个独立库。开发者不必再实现 ZIP/OPF/NCX/NAV/HTML/CSS
+**一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 [CrossMux](https://github.com/0x1abin/crossmux)
+与 [Read Pico](https://github.com/wegooo-cell/read-pico-reader) 两个阅读器里的 EPUB 能力
+合并成一个独立库。开发者不必再实现 ZIP/OPF/NCX/NAV/HTML/CSS
 解析、分页、字体栅格化或图片解码，直接调用本库即可获得：
 
 - EPUB 2 / 3 打开、元数据、封面、目录（NCX + Nav）
@@ -17,10 +18,10 @@
 - 可裁剪的编译期功能开关，适配 ESP32 等受限设备
 
 > English summary: RollingEPUB is a portable C++17/C99-ABI EPUB engine that merges
-> the EPUB stacks of CrossSIGO/CrossMux (MIT) and Read Pico/kiikoread (Apache-2.0).
-> It opens a book, parses HTML/CSS, paginates text (CJK/Latin/vertical), decodes
-> images and renders pages into the caller's framebuffer. Footnote popups, image
-> zoom viewers, TOC, cover and byte-accurate progress are built in.
+> the EPUB stacks of CrossMux (MIT) and Read Pico (Apache-2.0). It opens a book,
+> parses HTML/CSS, paginates text (CJK/Latin/vertical), decodes images and renders
+> pages into the caller's framebuffer. Footnote popups, image zoom viewers, TOC,
+> cover and byte-accurate progress are built in.
 
 ## 渲染效果 / Screenshots
 
@@ -237,7 +238,7 @@ Arduino 侧可使用 C API，或 `rolling_epub.hpp`（需要 C++17）。
 - [`docs/PLAN.md`](docs/PLAN.md) — 架构、模块边界、复用来源
 - [`docs/FEATURES.md`](docs/FEATURES.md) — 两个源项目与 RollingEPUB 的功能对照
 - [`docs/API.md`](docs/API.md) — API 指南（生命周期、坐标、内存、错误处理）
-- [`docs/PORTING.md`](docs/PORTING.md) — 从 CrossSIGO / Read Pico 迁移
+- [`docs/PORTING.md`](docs/PORTING.md) — 从 CrossMux / Read Pico 迁移
 - [`docs/LICENSING.md`](docs/LICENSING.md) — 许可证与来源声明
 
 ## 已知限制 / Known limitations (v1)

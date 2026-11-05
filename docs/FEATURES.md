@@ -3,12 +3,12 @@
 Legend: ✅ supported · ◐ optional / partial · ✖ not planned for v1.
 
 Sources:
-- **CrossSIGO / CrossMux** — `D:\CrossSIGO\crossmux\lib\Epub` (MIT)
-- **Read Pico / kiikoread** — `D:\Read Pico\main\book` (Apache-2.0 for the reused files)
+- **CrossMux** — [0x1abin/crossmux](https://github.com/0x1abin/crossmux), `lib/Epub` (MIT)
+- **Read Pico** — [wegooo-cell/read-pico-reader](https://github.com/wegooo-cell/read-pico-reader), `main/book` (Apache-2.0 for the reused files)
 
 ## Why this library exists
 
-Both readers grew their own EPUB stack. CrossSIGO has the richer CSS model,
+Both readers grew their own EPUB stack. CrossMux has the richer CSS model,
 hyphenation, TOC/metadata and image dithering; Read Pico has the richer CJK and
 vertical pagination, footnote extraction (including cross-file notes) and
 per-run font switching. RollingEPUB merges the two into one portable library so
@@ -17,7 +17,7 @@ rasterize glyphs itself.
 
 ## Container / package
 
-| Feature | CrossSIGO | Read Pico | RollingEPUB |
+| Feature | CrossMux | Read Pico | RollingEPUB |
 | --- | --- | --- | --- |
 | Read-only ZIP (stored + deflate) | ✅ | ✅ | ✅ |
 | ZIP64 central directory | ◐ | ✖ | ✅ |
@@ -38,7 +38,7 @@ rasterize glyphs itself.
 
 ## Content parsing (HTML / CSS)
 
-| Feature | CrossSIGO | Read Pico | RollingEPUB |
+| Feature | CrossMux | Read Pico | RollingEPUB |
 | --- | --- | --- | --- |
 | Tolerant XHTML/HTML tokenizer | ✅ | ✅ | ✅ |
 | HTML entities (named + numeric) | ✅ | ◐ | ✅ |
@@ -69,7 +69,7 @@ rasterize glyphs itself.
 
 ## Layout / pagination
 
-| Feature | CrossSIGO | Read Pico | RollingEPUB |
+| Feature | CrossMux | Read Pico | RollingEPUB |
 | --- | --- | --- | --- |
 | Deterministic pixel pagination | ✅ | ✅ | ✅ |
 | Latin whole-word wrapping | ✅ | ✅ | ✅ |
@@ -92,7 +92,7 @@ rasterize glyphs itself.
 
 ## Rendering
 
-| Feature | CrossSIGO | Read Pico | RollingEPUB |
+| Feature | CrossMux | Read Pico | RollingEPUB |
 | --- | --- | --- | --- |
 | 1-bit framebuffer | ✅ | ✅ | ✅ |
 | 2/4/8-bit gray framebuffer | ✅ | ✅ | ✅ |
