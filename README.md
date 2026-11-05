@@ -40,7 +40,7 @@
 以上图片由本仓库的 `repub_cli` 在测试 EPUB 上直接渲染得到。`latin/cjk` 截图使用
 仓库自带的 `tests/fixtures/fonts/noto-subset.ttf`（子集未覆盖的字显示为方框，
 属于字体覆盖而非排版问题）；`rollinggirl` 截图使用本机完整 CJK 字体渲染，字体文件
-不随仓库分发；样张可用 `python tools/make_rollinggirl.py` 重新生成。
+不随仓库分发。
 
 ## 状态 / Status
 
