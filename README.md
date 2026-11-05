@@ -1,7 +1,7 @@
 # RollingEPUB
 
-[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.x-E7352C?logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
-[![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
+[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v6.1-E7352C?style=for-the-badge&logo=espressif&logoColor=white)](https://docs.espressif.com/projects/esp-idf/)
+[![Arduino](https://img.shields.io/badge/Arduino-compatible-00979D?style=for-the-badge&logo=arduino&logoColor=white)](https://www.arduino.cc/)
 
 **一个可直接复用的 EPUB 解析 / 排版 / 渲染库** — 把 [CrossMux](https://github.com/0x1abin/crossmux)
 与 [Read Pico](https://github.com/wegooo-cell/read-pico-reader) 两个阅读器里的 EPUB 能力
